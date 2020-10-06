@@ -1,0 +1,26 @@
+{
+  "name": "api_server",
+  "version": "1.0.0",
+  "description": "Node.js API with Express, Sequelize & MySQL",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YushchenkoAndrew/API_Server.git"
+  },
+  "author": "Mortis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/YushchenkoAndrew/API_Server/issues"
+  },
+  "homepage": "https://github.com/YushchenkoAndrew/API_Server#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "mysql2": "^2.2.5",
+    "sequelize": "^6.3.5"
+  }
+}
