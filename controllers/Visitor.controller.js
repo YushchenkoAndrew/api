@@ -1,3 +1,4 @@
+const { logRequest, logError } = require("./Controller");
 const { Visitors } = require("../models/index.js");
 
 exports.test = (req, res) => {
@@ -7,49 +8,58 @@ exports.test = (req, res) => {
 
 exports.findAll = (req, res) => {
   let condition = Object.keys(req.query).length ? req.query : null;
-  console.log("\x1b[34m[REQUEST]\x1b[0m findAll with condition =", condition);
+  logRequest("GET", "TABLE = 'Visitor' CONDITION =", condition);
 
   Visitors.findAll({ where: condition })
     .then((data) => res.send(data))
-    .catch((err) => {
-      console.log(`\x1b[31m[Error]\x1b[0m ${err}`);
-      res.status(500).send({ message: err.message });
-    });
+    .catch((err) => logError(err) || res.status(500).send({ message: err.message }));
 };
 
 exports.findOne = (req, res) => {
-  Visitors.findAll({ where: { id: req.params.id } }).then((data) => res.send(data));
+  logRequest("GET", "TABLE = 'Visitor' ID =", req.params.id);
+
+  Visitors.findAll({ where: { id: req.params.id } })
+    .then((data) => res.send(data))
+    .catch((err) => logError(err) || res.status(500).send({ message: err.message }));
 };
 
-// exports.create = (table, data) => {
-//   let newVisitor = {};
+exports.create = (req, res) => {
+  logRequest("POST", "TABLE = 'Visitor' DATA =", req.body);
 
-//   for (let i in data) {
-//     let params = data[i].split("=");
-//     newVisitor[params[0]] = params[1] || null;
-//   }
+  let { Country, ip, Visit_Date, Count } = req.body;
 
-//   return getTable(table).create(newVisitor);
-// };
+  if (!Country || !ip || !Visit_Date || !Count) {
+    logError("Invalid request message parameters");
+    res.status(400).send({ message: "Invalid request message parameters" });
+    return;
+  }
+
+  // Create new structure
+  let newVisitor = { Country: Country, ip: ip, Visit_Date: Visit_Date, Count: Count };
+
+  Visitors.create(newVisitor)
+    .then((data) => res.status(200).send(data))
+    .catch((err) => logError(err) || res.status(500).send({ message: err.message }));
+};
+
+exports.update = (req, res) => {
+  logRequest("PUT", "TABLE = 'Visitor' CONDITION =", { ...req.query, ...req.params }, "DATA = ", req.body);
+
+  // Check if parameters and updated data
+  if (!Object.keys(req.body).length || (!Object.keys(req.query).length && !Object.keys(req.params).length)) {
+    logError("Invalid request message parameters");
+    res.status(400).send({ message: "Invalid request message parameters" });
+    return;
+  }
+
+  Visitors.update(req.body, { where: { ...req.query, ...req.params } })
+    .then((data) => res.send({ message: "Information was updated successfully" }))
+    .catch((err) => logError(err) || res.status(500).send({ message: err }));
+};
 
 // exports.delete = (table, key, value) => {
 //   let condition = {};
 //   condition[key] = value;
 
 //   return getTable(table).destroy({ where: condition });
-// };
-
-// exports.update = (table, data) => {
-//   let condition = data.splice(0, 1)[0].split("=");
-//   let where = {};
-//   where[condition[0]] = condition[1];
-
-//   let newValue = {};
-
-//   for (let i in data) {
-//     let params = data[i].split("=");
-//     newValue[params[0]] = params[1];
-//   }
-
-//   return getTable(table).update(newValue, { where: where });
 // };
