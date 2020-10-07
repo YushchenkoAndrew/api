@@ -21,6 +21,9 @@ db.Op = Op;
 // Table models
 db.Visitors = require("./Visitor.model.js")(sequelize, Sequelize);
 db.Views = require("./Views.model.js")(sequelize, Sequelize);
+db.Github = require("./Github.model.js")(sequelize, Sequelize);
+db.UsedLanguages = require("./UsedLanguages.model.js")(sequelize, Sequelize);
+db.Github.hasMany(db.UsedLanguages);
 
 // Synchronize all Models
 db.sequelize.sync().then(() => console.log("\x1b[32m[INFO]\x1b[0m Sync All defined DB Models"));

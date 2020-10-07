@@ -57,7 +57,7 @@ exports.update = (req, res) => {
     .catch((err) => logError(err) || res.status(500).send({ message: err }));
 };
 
-exports.delete = (req, res) => {
+exports.destroy = (req, res) => {
   logRequest("DELETE", "TABLE = 'Visitor' CONDITION =", { ...req.query, ...req.params });
 
   if (!Object.keys(req.query).length && !Object.keys(req.params).length) {
