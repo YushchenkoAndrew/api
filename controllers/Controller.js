@@ -48,6 +48,7 @@ exports.findOne = (req, res) => {
   else this.logError || res.status(404).send({ message: "Table not Found" });
 };
 
+// REDIRECT POST Request to the <Table>
 exports.create = (req, res) => {
   let table = getTable(req.params.table);
   delete req.params.table;
@@ -56,6 +57,7 @@ exports.create = (req, res) => {
   else this.logError || res.status(404).send({ message: "Table not Found" });
 };
 
+// REDIRECT PUT Request to the <Table>
 exports.update = (req, res) => {
   let table = getTable(req.params.table);
   delete req.params.table;
@@ -64,6 +66,7 @@ exports.update = (req, res) => {
   else this.logError || res.status(404).send({ message: "Table not Found" });
 };
 
+// REDIRECT DELETE Request to the <Table>
 exports.destroy = (req, res) => {
   let table = getTable(req.params.table);
   delete req.params.table;
