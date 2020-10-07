@@ -53,13 +53,20 @@ exports.update = (req, res) => {
   }
 
   Visitors.update(req.body, { where: { ...req.query, ...req.params } })
-    .then((data) => res.send({ message: "Information was updated successfully" }))
+    .then((data) => (data ? res.send({ message: "Information was updated successfully" }) : res.send({ message: "Information updating was Failed" })))
     .catch((err) => logError(err) || res.status(500).send({ message: err }));
 };
 
-// exports.delete = (table, key, value) => {
-//   let condition = {};
-//   condition[key] = value;
+exports.delete = (req, res) => {
+  logRequest("DELETE", "TABLE = 'Visitor' CONDITION =", { ...req.query, ...req.params });
 
-//   return getTable(table).destroy({ where: condition });
-// };
+  if (!Object.keys(req.query).length && !Object.keys(req.params).length) {
+    logError("Invalid request message parameters");
+    res.status(400).send({ message: "Invalid request message parameters" });
+    return;
+  }
+
+  Visitors.destroy({ where: { ...req.query, ...req.params } })
+    .then((data) => (data ? res.send({ message: "Information was deleted successfully" }) : res.send({ message: "Information deleting was Failed" })))
+    .catch((err) => logError(err) || res.status(500).send({ message: err }));
+};
