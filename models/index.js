@@ -11,8 +11,8 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 
 sequelize
   .authenticate()
-  .then((err) => console.log("\n\x1b[32m[INFO]\x1b[0m Connected to DataBase " + config.database))
-  .catch((err) => console.log("\n\x1b[31m[INFO]\x1b[0m Unable to connect to db" + err));
+  .then((data) => console.log("\n\x1b[32m[INFO]\x1b[0m Connected to DataBase " + config.database))
+  .catch((err) => console.log("\n\x1b[31m[ERROR]\x1b[0m Unable to connect to db", err));
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
@@ -23,6 +23,8 @@ db.Visitors = require("./Visitor.model.js")(sequelize, Sequelize);
 db.Views = require("./Views.model.js")(sequelize, Sequelize);
 db.Github = require("./Github.model.js")(sequelize, Sequelize);
 db.UsedLanguages = require("./UsedLanguages.model.js")(sequelize, Sequelize);
+
+// Relation between databases
 db.Github.hasMany(db.UsedLanguages);
 
 // Synchronize all Models

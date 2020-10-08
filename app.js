@@ -16,9 +16,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Determining Routers settings
 app.use("/api", router);
 
-process.on("SIGINT", function () {
+process.on("SIGINT", async function () {
   console.log("\x1b[32m[INFO]\x1b[0m Server Terminated");
-  process.exit();
+  await db.sequelize.close();
+  process.exit(0);
 });
 
 app.listen(PORT, HOST, (err) => {
