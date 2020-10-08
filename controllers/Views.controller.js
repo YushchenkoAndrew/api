@@ -38,7 +38,7 @@ exports.create = (req, res) => {
   let newViews = { Curr_Date: Curr_Date, Count: Count };
 
   Views.create(newViews)
-    .then((data) => res.status(200).send(data))
+    .then((data) => res.status(201).send(data))
     .catch((err) => logError(err) || res.status(500).send({ message: err.message }));
 };
 
@@ -53,7 +53,7 @@ exports.update = (req, res) => {
   }
 
   Views.update(req.body, { where: { ...req.query, ...req.params } })
-    .then((data) => (data ? res.send({ message: "Information was updated successfully" }) : res.send({ message: "Information updating was Failed" })))
+    .then((data) => (data ? res.sendStatus(204) : res.sendStatus(304)))
     .catch((err) => logError(err) || res.status(500).send({ message: err }));
 };
 
@@ -67,6 +67,6 @@ exports.destroy = (req, res) => {
   }
 
   Views.destroy({ where: { ...req.query, ...req.params } })
-    .then((data) => (data ? res.send({ message: "Information was deleted successfully" }) : res.send({ message: "Information deleting was Failed" })))
+    .then((data) => (data ? res.sendStatus(204) : res.sendStatus(304)))
     .catch((err) => logError(err) || res.status(500).send({ message: err }));
 };

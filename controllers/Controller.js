@@ -36,7 +36,7 @@ exports.findAll = (req, res) => {
   delete req.params.table;
 
   if (table) table.findAll(req, res);
-  else this.logError || res.status(404).send({ message: "Table not Found" });
+  else this.logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
 };
 
 // REDIRECT GET Request to the <Table>
@@ -45,7 +45,7 @@ exports.findOne = (req, res) => {
   delete req.params.table;
 
   if (table) table.findOne(req, res);
-  else this.logError || res.status(404).send({ message: "Table not Found" });
+  else this.logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
 };
 
 // REDIRECT POST Request to the <Table>
@@ -54,7 +54,7 @@ exports.create = (req, res) => {
   delete req.params.table;
 
   if (table) table.create(req, res);
-  else this.logError || res.status(404).send({ message: "Table not Found" });
+  else this.logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
 };
 
 // REDIRECT PUT Request to the <Table>
@@ -63,7 +63,7 @@ exports.update = (req, res) => {
   delete req.params.table;
 
   if (table) table.update(req, res);
-  else this.logError || res.status(404).send({ message: "Table not Found" });
+  else this.logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
 };
 
 // REDIRECT DELETE Request to the <Table>
@@ -72,5 +72,5 @@ exports.destroy = (req, res) => {
   delete req.params.table;
 
   if (table) table.destroy(req, res);
-  else this.logError || res.status(404).send({ message: "Table not Found" });
+  else this.logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
 };
