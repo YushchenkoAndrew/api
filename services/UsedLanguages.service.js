@@ -19,14 +19,14 @@ exports.destroy = (query, callback, err) => {
 exports.toString = () => "UsedLanguages";
 
 class Data {
-  constructor({ Name, Size, RepoID }) {
+  constructor({ Name, Size, GithubId }) {
     this.Name = Name;
     this.Size = Size;
-    this.RepoID = RepoID;
+    this.GithubId = GithubId;
   }
 
   check() {
-    return !this.Name && !this.Size && !this.RepoID;
+    return !this.Name && !this.Size && !this.GithubId;
   }
 }
 

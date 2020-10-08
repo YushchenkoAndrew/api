@@ -5,7 +5,7 @@ module.exports = (sequelize, Sequelize) => {
       id: { type: Sequelize.DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       Name: { type: Sequelize.DataTypes.STRING },
       Size: { type: Sequelize.DataTypes.INTEGER },
-      RepoID: { type: Sequelize.DataTypes.INTEGER, references: { model: "Github", key: "id" } },
+      GithubId: { type: Sequelize.DataTypes.INTEGER, references: { model: "Github", key: "id" } },
     },
     {
       timestamps: false,
