@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-const router = require("./config/routes");
+const router = require("./routes/routes");
 const db = require("./models/index");
 
 const HOST = "0.0.0.0";
