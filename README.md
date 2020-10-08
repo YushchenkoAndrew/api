@@ -9,13 +9,13 @@
 - [ ] Request handler:
   - [x] JSON
   - [ ] XML
-- [ ] CRUD
-  - [ ] CRUD: Controllers
-  - [ ] CRUD: Services
-  - [ ] CRUD: Repositories
+- [x] CRUD
+  - [x] CRUD: Controllers
+  - [x] CRUD: Services
+  - [x] CRUD: Repositories
 - [ ] Terminal commands
 - [ ] Design / Documentation
-  - [ ] Files Structure
+  - [x] Files Structure
   - [ ] Unit tests
   - [ ] Swagger
 - [ ] Docker Container description
