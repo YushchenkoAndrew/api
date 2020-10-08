@@ -16,6 +16,7 @@ exports.logError = (err) => console.log(`\x1b[31m[Error]\x1b[0m ${err}`);
 const visitor = require("../services/Visitor.service");
 const views = require("../services/Views.service");
 const github = require("../services/Github.service");
+const usedLanguages = require("../services/UsedLanguages.service");
 
 function getTable(name) {
   switch (name) {
@@ -27,6 +28,9 @@ function getTable(name) {
 
     case "Github":
       return github;
+
+    case "UsedLanguages":
+      return usedLanguages;
   }
 }
 
