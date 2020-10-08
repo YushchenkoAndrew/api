@@ -3,16 +3,20 @@
 ## Features
 
 - [x] Framework: Express
-- [x] Routes: Express
-- [x] ORM: Sequelize
-- [x] Request handler in JSON
-- [ ] Request handler in XML
-- [x] CRUD Structure
-- [ ] CRUD Base Service
-- [ ] CRUD Base Controller
-- [ ] Simple Terminal Interface
-- [ ] Terminal commands
-- [ ] Unit tests
+- [x] API Routes: Express
 - [x] HTTP Status Codes
+- [x] ORM: Sequelize
+- [ ] Request handler:
+  - [x] JSON
+  - [ ] XML
+- [ ] CRUD
+  - [ ] CRUD: Controllers
+  - [ ] CRUD: Services
+  - [ ] CRUD: Repositories
+- [ ] Terminal commands
+- [ ] Design / Documentation
+  - [ ] Files Structure
+  - [ ] Unit tests
+  - [ ] Swagger
 - [ ] Docker Container description
 - [ ] Kubernetes description
