@@ -1,6 +1,6 @@
 {
   "name": "api_server",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Node.js API with Express, Sequelize & MySQL",
   "main": "app.js",
   "scripts": {
@@ -21,6 +21,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "mysql2": "^2.2.5",
-    "sequelize": "^6.3.5"
+    "sequelize": "^6.3.5",
+    "swagger-ui-express": "^4.1.4"
   }
 }

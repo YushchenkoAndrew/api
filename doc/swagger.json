@@ -1,0 +1,249 @@
+{
+  "info": {
+    "title": "NodeJS API",
+    "description": "Node.js API with Express, Sequelize & MySQL",
+    "version": "0.0.1"
+  },
+
+  "host": "0.0.0.0:31337",
+  "basePath": "/api/doc",
+  "swagger": "2.0",
+
+  "tags": [
+    {
+      "name": "Visitor",
+      "description": ""
+    },
+    {
+      "name": "Views",
+      "description": ""
+    }
+  ],
+
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+
+  "paths": {
+    "/api/Visitor": {
+      "get": {
+        "tags": ["Visitor"],
+        "summary": "Get all data from Visitor Table",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Visitor"
+            }
+          },
+
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Field 'Count' doesn't have a default value"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "post": {
+        "tags": ["Visitor"],
+        "summary": "Add new data to Visitor",
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Visitor"
+            }
+          },
+
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Invalid request message parameters"
+                }
+              }
+            }
+          },
+
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Field 'Count' doesn't have a default value"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/Visitor/{id}": {
+      "get": {
+        "tags": ["Visitor"],
+        "summary": "Get data by id from Visitor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Visitor"
+            }
+          },
+
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Invalid request message parameters"
+                }
+              }
+            }
+          },
+
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Field 'Count' doesn't have a default value"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "put": {
+        "tags": ["Visitor"],
+        "summary": "Update data by id in Visitor",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+
+          "304": {
+            "description": "Not Modified"
+          },
+
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Invalid request message parameters"
+                }
+              }
+            }
+          },
+
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Field 'Count' doesn't have a default value"
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "delete": {
+        "tags": ["Visitor"],
+        "summary": "Delete data by id from Visitor",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+
+          "304": {
+            "description": "Not Modified"
+          },
+
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Invalid request message parameters"
+                }
+              }
+            }
+          },
+
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Field 'Count' doesn't have a default value"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/Visitor?col=value": {
+      "get": {
+        "tags": ["Visitor"],
+        "summary": "Get all data from Visitor Table",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Visitor"
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "definitions": {
+    "Visitor": {
+      "required": ["Country", "ip", "Visit_Date", "Count"],
+      "properties": {
+        "Country": {
+          "type": "string",
+          "maxLength": 2,
+          "example": "US"
+        },
+
+        "ip": {
+          "type": "string",
+          "example": "127.0.0.1"
+        },
+
+        "Visit_Date": {
+          "type": "string",
+          "format": "date"
+        },
+
+        "Count": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

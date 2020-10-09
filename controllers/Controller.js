@@ -79,7 +79,7 @@ exports.findOne = (req, res) => {
 exports.create = (req, res) => {
   let table = getTable(req.params.table);
   // delete req.params.table;
-  this.logRequest("POST", "TABLE = 'Views' DATA =", req.body);
+  this.logRequest("POST", `TABLE = '${table}' DATA =`, req.body);
 
   if (table) {
     let data = new table.Data(req.body);
@@ -96,7 +96,7 @@ exports.create = (req, res) => {
       // Callback
       (data) => res.status(201).send(data),
       // Error
-      (err) => logError(err) || res.status(500).send({ message: err.message })
+      (err) => this.logError(err) || res.status(500).send({ message: err.message })
     );
   } else this.logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
 };
@@ -106,7 +106,7 @@ exports.update = (req, res) => {
   let table = getTable(req.params.table);
   delete req.params.table;
 
-  this.logRequest("PUT", "TABLE = 'Views' CONDITION =", { ...req.query, ...req.params }, "DATA = ", req.body);
+  this.logRequest("PUT", `TABLE = '${table}' CONDITION =`, { ...req.query, ...req.params }, "DATA = ", req.body);
 
   // Check if parameters and updated data
   if (!Object.keys(req.body).length || (!Object.keys(req.query).length && !Object.keys(req.params).length)) {

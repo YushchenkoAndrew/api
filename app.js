@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const app = express();
 const router = require("./routes/routes");
 const db = require("./models/index");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./doc/swagger.json");
 
 const HOST = "0.0.0.0";
 const PORT = 31337;
@@ -12,6 +14,9 @@ app.use(bodyParser.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Swagger Documentation
+app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Determining Routers settings
 app.use("/api", router);
