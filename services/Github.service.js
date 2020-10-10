@@ -26,7 +26,7 @@ class Data {
   }
 
   check() {
-    return this.Name === undefined && this.UpdateAt === undefined && this.Context === undefined;
+    return this.Name === undefined || this.UpdateAt === undefined || this.Context === undefined;
   }
 }
 

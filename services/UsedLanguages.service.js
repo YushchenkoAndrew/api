@@ -26,7 +26,7 @@ class Data {
   }
 
   check() {
-    return this.Name === undefined && this.Size === undefined && this.GithubId === undefined;
+    return this.Name === undefined || this.Size === undefined || this.GithubId === undefined;
   }
 }
 

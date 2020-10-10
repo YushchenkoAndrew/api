@@ -27,7 +27,7 @@ class Data {
   }
 
   check() {
-    return this.Country === undefined && this.ip === undefined && this.Visit_Date === undefined && this.Count === undefined;
+    return this.Country === undefined || this.ip === undefined || this.Visit_Date === undefined || this.Count === undefined;
   }
 }
 
