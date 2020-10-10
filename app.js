@@ -1,3 +1,4 @@
+const { logInfo, logError } = require("./lib/log");
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
@@ -22,13 +23,13 @@ app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api", router);
 
 process.on("SIGINT", async function () {
-  console.log("\x1b[32m[INFO]\x1b[0m Server Terminated");
+  logInfo("Server Terminated");
   await db.sequelize.close();
   process.exit(0);
 });
 
 app.listen(PORT, HOST, (err) => {
-  if (err) console.log(`\x1b[31m[ERROR]\x1b[0m Error appear ${err}`);
-  console.log("\x1b[32m[INFO]\x1b[0m Server Started ...");
-  console.log(`\x1b[32m[INFO]\x1b[0m Listening on Port ${PORT}`);
+  if (err) logError(`Error appear ${err}`);
+  logInfo("Server Started ...");
+  logInfo(`Listening on Port ${PORT}`);
 });

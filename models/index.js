@@ -1,3 +1,4 @@
+const { logInfo, logError } = require("../lib/log");
 const config = require("../config/config");
 const { Sequelize, Op } = require("sequelize");
 const db = {};
@@ -11,8 +12,8 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 
 sequelize
   .authenticate()
-  .then((data) => console.log("\n\x1b[32m[INFO]\x1b[0m Connected to DataBase " + config.database))
-  .catch((err) => console.log("\n\x1b[31m[ERROR]\x1b[0m Unable to connect to db", err));
+  .then((data) => logInfo("Connected to DataBase " + config.database))
+  .catch((err) => logError("Unable to connect to db", err));
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
@@ -28,6 +29,6 @@ db.UsedLanguages = require("./UsedLanguages.model.js")(sequelize, Sequelize);
 db.Github.hasMany(db.UsedLanguages);
 
 // Synchronize all Models
-db.sequelize.sync().then(() => console.log("\x1b[32m[INFO]\x1b[0m Sync All defined DB Models"));
+db.sequelize.sync().then(() => logInfo("Sync All defined DB Models"));
 
 module.exports = db;
