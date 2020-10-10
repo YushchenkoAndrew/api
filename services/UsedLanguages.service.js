@@ -26,7 +26,7 @@ class Data {
   }
 
   check() {
-    return !this.Name && !this.Size && !this.GithubId;
+    return this.Name === undefined && this.Size === undefined && this.GithubId === undefined;
   }
 }
 

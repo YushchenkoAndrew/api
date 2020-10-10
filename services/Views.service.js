@@ -25,7 +25,7 @@ class Data {
   }
 
   check() {
-    return !this.Curr_Date && !this.Count;
+    return this.Curr_Date === undefined && this.Count === undefined;
   }
 }
 
