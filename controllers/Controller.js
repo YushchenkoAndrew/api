@@ -98,7 +98,7 @@ exports.update = (req, res) => {
   logRequest("PUT", `TABLE = '${table}' CONDITION =`, { ...req.query, ...req.params }, "DATA = ", req.body);
 
   // Check if parameters and updated data
-  if (!Object.keys(req.body).length || (!Object.keys(req.query).length && !Object.keys(req.params).length)) {
+  if (!Object.keys(req.body).length || !(!Object.keys(req.query).length ^ !Object.keys(req.params).length)) {
     logError("Invalid request message parameters");
     res.status(400).send({ message: "Invalid request message parameters" });
     return;
@@ -122,10 +122,10 @@ exports.update = (req, res) => {
 exports.destroy = (req, res) => {
   let table = getTable(req.params.table);
   delete req.params.table;
-  logRequest("DELETE", "TABLE = 'Views' CONDITION =", { ...req.query, ...req.params });
+  logRequest("DELETE", `TABLE = '${table}' CONDITION =`, { ...req.query, ...req.params });
 
   // Bad Request handler
-  if (!Object.keys(req.query).length && !Object.keys(req.params).length) {
+  if (!(!Object.keys(req.query).length ^ !Object.keys(req.params).length)) {
     logError("Invalid request message parameters");
     res.status(400).send({ message: "Invalid request message parameters" });
     return;
