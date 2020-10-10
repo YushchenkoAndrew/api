@@ -17,6 +17,7 @@
 - [ ] Design / Documentation
   - [x] Files Structure
   - [ ] Unit tests
-  - [ ] Swagger
+  - [x] Logging
+  - [x] Swagger
 - [ ] Docker Container description
 - [ ] Kubernetes description
