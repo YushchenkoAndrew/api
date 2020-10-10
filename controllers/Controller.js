@@ -46,7 +46,7 @@ exports.findOne = (req, res) => {
   logRequest("GET", `TABLE = '${table}' ID =`, req.params.id);
 
   // Bad Request handler
-  if (req.params.id === undefined) {
+  if (req.params.id === undefined || isNaN(Number(req.params.id))) {
     logError("Invalid request message parameters");
     res.status(400).send({ message: "Invalid request message parameters" });
     return;
