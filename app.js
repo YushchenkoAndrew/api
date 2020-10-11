@@ -21,6 +21,7 @@ app.use(bodyParser.xml());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// FIXME: Fix PUT REQUEST in swagger.json + Add XML REQUEST HANDLER
 // Swagger Documentation
 app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -29,6 +30,9 @@ app.use("/api", router);
 
 // Catch 404 and forward to error handler
 app.use((req, res, next) => errorHandler(404, `Not Found '${req.url}'`, req, res));
+
+// Error handler
+app.use((err, req, res, next) => errorHandler(500, `Not Found '${req.url}'`, req, res));
 
 process.on("SIGINT", async function () {
   logInfo("Server Terminated");
