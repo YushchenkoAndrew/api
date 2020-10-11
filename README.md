@@ -6,9 +6,9 @@
 - [x] API Routes: Express
 - [x] HTTP Status Codes
 - [x] ORM: Sequelize
-- [ ] Request handler:
+- [x] Request handler:
   - [x] JSON
-  - [ ] XML
+  - [x] XML
 - [x] CRUD
   - [x] CRUD: Controllers
   - [x] CRUD: Services

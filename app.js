@@ -1,7 +1,8 @@
-const { logInfo } = require("./lib/log");
+const { logInfo, logDebug } = require("./lib/log");
 const { errorHandler } = require("./lib/errorHandler");
 const express = require("express");
 const bodyParser = require("body-parser");
+require("body-parser-xml")(bodyParser);
 const app = express();
 const router = require("./routes/routes");
 const db = require("./models/index");
@@ -13,6 +14,9 @@ const PORT = 31337;
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
+
+// parse requests of content-type - application/xml
+app.use(bodyParser.xml());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
