@@ -24,7 +24,7 @@ function getTable(name) {
 }
 
 // REDIRECT GET Request to the <Table>
-exports.findAll = (req, res) => {
+exports.findAll = (req, res, next) => {
   let table = getTable(req.params.table);
   let query = Object.keys(req.query).length ? req.query : null;
   logRequest("GET", `TABLE = '${table}' QUERY =`, query);
@@ -37,11 +37,11 @@ exports.findAll = (req, res) => {
       // Error
       (err) => logError(err) || res.status(500).send({ message: err.message })
     );
-  else logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
+  else next();
 };
 
 // REDIRECT GET Request to the <Table>
-exports.findOne = (req, res) => {
+exports.findOne = (req, res, next) => {
   let table = getTable(req.params.table);
   logRequest("GET", `TABLE = '${table}' ID =`, req.params.id);
 
@@ -61,11 +61,11 @@ exports.findOne = (req, res) => {
       // Error
       (err) => logError(err) || res.status(500).send({ message: err.message })
     );
-  else logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
+  else next();
 };
 
 // REDIRECT POST Request to the <Table>
-exports.create = (req, res) => {
+exports.create = (req, res, next) => {
   let table = getTable(req.params.table);
   // delete req.params.table;
   logRequest("POST", `TABLE = '${table}' DATA =`, req.body);
@@ -87,11 +87,11 @@ exports.create = (req, res) => {
       // Error
       (err) => logError(err) || res.status(500).send({ message: err.message })
     );
-  } else logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
+  } else next();
 };
 
 // REDIRECT PUT Request to the <Table>
-exports.update = (req, res) => {
+exports.update = (req, res, next) => {
   let table = getTable(req.params.table);
   delete req.params.table;
 
@@ -115,11 +115,11 @@ exports.update = (req, res) => {
       // Error
       (err) => logError(err) || res.status(500).send({ message: err.message })
     );
-  else logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
+  else next();
 };
 
 // REDIRECT DELETE Request to the <Table>
-exports.destroy = (req, res) => {
+exports.destroy = (req, res, next) => {
   let table = getTable(req.params.table);
   delete req.params.table;
   logRequest("DELETE", `TABLE = '${table}' CONDITION =`, { ...req.query, ...req.params });
@@ -140,5 +140,5 @@ exports.destroy = (req, res) => {
       // Error
       (err) => logError(err) || res.status(500).send({ message: err })
     );
-  else logError("Table not Found") || res.status(404).send({ message: "Table not Found" });
+  else next();
 };

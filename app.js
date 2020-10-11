@@ -22,6 +22,9 @@ app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Determining Routers settings
 app.use("/api", router);
 
+// Catch 404 and forward to error handler
+app.use((req, res, next) => logError("Not Found", req.url) || res.status(404).send({ message: "Not Found" }));
+
 process.on("SIGINT", async function () {
   logInfo("Server Terminated");
   await db.sequelize.close();
