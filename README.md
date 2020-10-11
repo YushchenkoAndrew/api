@@ -18,6 +18,7 @@
   - [x] Files Structure
   - [ ] Unit tests
   - [x] Logging
+  - [x] Error handler
   - [x] Swagger
 - [ ] Docker Container description
 - [ ] Kubernetes description

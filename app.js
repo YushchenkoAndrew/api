@@ -1,4 +1,5 @@
-const { logInfo, logError } = require("./lib/log");
+const { logInfo } = require("./lib/log");
+const { errorHandler } = require("./lib/errorHandler");
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
@@ -23,7 +24,7 @@ app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api", router);
 
 // Catch 404 and forward to error handler
-app.use((req, res, next) => logError("Not Found", req.url) || res.status(404).send({ message: "Not Found" }));
+app.use((req, res, next) => errorHandler(404, `Not Found '${req.url}'`, req, res));
 
 process.on("SIGINT", async function () {
   logInfo("Server Terminated");
@@ -32,7 +33,7 @@ process.on("SIGINT", async function () {
 });
 
 app.listen(PORT, HOST, (err) => {
-  if (err) logError(`Error appear ${err}`);
+  if (err) errorHandler(500, `Error appear ${err.message}`);
   logInfo("Server Started ...");
   logInfo(`Listening on Port ${PORT}`);
 });

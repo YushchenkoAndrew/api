@@ -1,4 +1,5 @@
-const { logRequest, logError } = require("../lib/log");
+const { logRequest } = require("../lib/log");
+const { errorHandler } = require("../lib/errorHandler");
 const visitor = require("../services/Visitor.service");
 const views = require("../services/Views.service");
 const github = require("../services/Github.service");
@@ -35,7 +36,7 @@ exports.findAll = (req, res, next) => {
       // Callback
       (data) => res.send(data),
       // Error
-      (err) => logError(err) || res.status(500).send({ message: err.message })
+      (err) => errorHandler(500, err.message, req, res)
     );
   else next();
 };
@@ -47,8 +48,7 @@ exports.findOne = (req, res, next) => {
 
   // Bad Request handler
   if (req.params.id === undefined || isNaN(Number(req.params.id))) {
-    logError("Invalid request message parameters");
-    res.status(400).send({ message: "Invalid request message parameters" });
+    errorHandler(400, "Invalid request message parameters", req, res);
     return;
   }
 
@@ -59,7 +59,7 @@ exports.findOne = (req, res, next) => {
       // Callback
       (data) => res.send(data),
       // Error
-      (err) => logError(err) || res.status(500).send({ message: err.message })
+      (err) => errorHandler(500, err.message, req, res)
     );
   else next();
 };
@@ -75,8 +75,7 @@ exports.create = (req, res, next) => {
 
     // Bad Request handler
     if (data.check()) {
-      logError("Invalid request message parameters");
-      res.status(400).send({ message: "Invalid request message parameters" });
+      errorHandler(400, "Invalid request message parameters", req, res);
       return;
     }
 
@@ -85,7 +84,7 @@ exports.create = (req, res, next) => {
       // Callback
       (data) => res.status(201).send(data),
       // Error
-      (err) => logError(err) || res.status(500).send({ message: err.message })
+      (err) => errorHandler(500, err.message, req, res)
     );
   } else next();
 };
@@ -99,8 +98,7 @@ exports.update = (req, res, next) => {
 
   // Check if parameters and updated data
   if (!Object.keys(req.body).length || !(!Object.keys(req.query).length ^ !Object.keys(req.params).length)) {
-    logError("Invalid request message parameters");
-    res.status(400).send({ message: "Invalid request message parameters" });
+    errorHandler(400, "Invalid request message parameters", req, res);
     return;
   }
 
@@ -113,7 +111,7 @@ exports.update = (req, res, next) => {
       // Callback
       ([data]) => (data ? res.sendStatus(204) : res.sendStatus(304)),
       // Error
-      (err) => logError(err) || res.status(500).send({ message: err.message })
+      (err) => errorHandler(500, err.message, req, res)
     );
   else next();
 };
@@ -126,8 +124,7 @@ exports.destroy = (req, res, next) => {
 
   // Bad Request handler
   if (!(!Object.keys(req.query).length ^ !Object.keys(req.params).length)) {
-    logError("Invalid request message parameters");
-    res.status(400).send({ message: "Invalid request message parameters" });
+    errorHandler(400, "Invalid request message parameters", req, res);
     return;
   }
 
@@ -138,7 +135,7 @@ exports.destroy = (req, res, next) => {
       // Callback
       (data) => (data ? res.sendStatus(204) : res.sendStatus(304)),
       // Error
-      (err) => logError(err) || res.status(500).send({ message: err })
+      (err) => errorHandler(500, err.message, req, res)
     );
   else next();
 };

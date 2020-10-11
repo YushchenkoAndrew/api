@@ -1,4 +1,5 @@
-const { logInfo, logError } = require("../lib/log");
+const { logInfo } = require("../lib/log");
+const { errorHandler } = require("../lib/errorHandler");
 const config = require("../config/config");
 const { Sequelize, Op } = require("sequelize");
 const db = {};
@@ -13,7 +14,7 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 sequelize
   .authenticate()
   .then((data) => logInfo("Connected to DataBase " + config.database))
-  .catch((err) => logError("Unable to connect to db", err));
+  .catch((err) => errorHandler(500, `Unable to connect to db ${err.message}`));
 
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
