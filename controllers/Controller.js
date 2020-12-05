@@ -1,9 +1,9 @@
 const { logRequest, logDebug } = require("../lib/log");
 const { errorHandler, resByType, getDataByType } = require("../lib/resHandler");
-const visitor = require("../services/Visitor.service");
-const views = require("../services/Views.service");
-const github = require("../services/Github.service");
-const usedLanguages = require("../services/UsedLanguages.service");
+const Visitor = require("../services/Visitor.service");
+const Views = require("../services/Views.service");
+const Github = require("../services/Github.service");
+const UsedLanguages = require("../services/UsedLanguages.service");
 
 //
 // REDIRECTION
@@ -12,16 +12,16 @@ const usedLanguages = require("../services/UsedLanguages.service");
 function getTable(name) {
   switch (name) {
     case "Visitor":
-      return visitor;
+      return Visitor;
 
     case "Views":
-      return views;
+      return Views;
 
     case "Github":
-      return github;
+      return Github;
 
     case "UsedLanguages":
-      return usedLanguages;
+      return UsedLanguages;
   }
 }
 
