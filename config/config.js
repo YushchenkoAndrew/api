@@ -1,8 +1,10 @@
+require("dotenv").config();
+
 module.exports = {
-  username: "mortis",
-  password: "wEat7myihpr6thKfp1",
-  database: "Monitoring",
-  host: "192.168.0.105",
-  dialect: "mysql",
+  username: process.env.DB_USER || "",
+  password: process.env.DB_PWD || "",
+  database: process.env.DB_NAME || "",
+  host: process.env.DB_HOST || "",
+  dialect: process.env.DB_TYPE || "mysql",
   logging: false,
 };

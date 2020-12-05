@@ -1,5 +1,5 @@
 const { logInfo } = require("../lib/log");
-const { errorHandler } = require("../lib/errorHandler");
+const { errorHandler } = require("../lib/resHandler");
 const config = require("../config/config");
 const { Sequelize, Op } = require("sequelize");
 const db = {};
