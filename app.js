@@ -7,7 +7,7 @@ const app = express();
 const router = require("./routes/routes");
 const db = require("./models/index");
 const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./doc/swagger.json");
+const { swaggerDocument } = require("./doc/swagger.js");
 require("dotenv").config();
 
 const HOST = process.env.API_HOST || "127.0.0.1";
