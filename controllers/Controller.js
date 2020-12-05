@@ -1,5 +1,5 @@
-const { logRequest } = require("../lib/log");
-const { errorHandler } = require("../lib/errorHandler");
+const { logRequest, logDebug } = require("../lib/log");
+const { errorHandler, resByType } = require("../lib/resHandler");
 const visitor = require("../services/Visitor.service");
 const views = require("../services/Views.service");
 const github = require("../services/Github.service");
@@ -35,7 +35,7 @@ exports.findAll = (req, res, next) => {
     table.find(
       query,
       // Callback
-      (data) => res.send(data),
+      (data) => (data.length ? resByType(req.header("Content-Type"), data, res) : res.sendStatus(204)),
       // Error
       (err) => errorHandler(500, err.message, req, res)
     );
@@ -58,7 +58,7 @@ exports.findOne = (req, res, next) => {
       // Query
       { id: req.params.id },
       // Callback
-      (data) => res.send(data),
+      (data) => (data.length ? resByType(req.header("Content-Type"), data, res) : res.sendStatus(204)),
       // Error
       (err) => errorHandler(500, err.message, req, res)
     );
@@ -83,7 +83,7 @@ exports.create = (req, res, next) => {
     table.create(
       data,
       // Callback
-      (data) => res.status(201).send(data),
+      (data) => resByType(req.header("Content-Type"), data, res, 201),
       // Error
       (err) => errorHandler(500, err.message, req, res)
     );
