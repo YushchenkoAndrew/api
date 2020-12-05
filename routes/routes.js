@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const { findAll, findOne, create, update, destroy } = require("../controllers/Controller");
+const { authorizationToken: auth, generateToken } = require("../middleware/auth");
 // destroy == DELETE Request
 
 // Return all or requested one data from <Table>
@@ -16,5 +17,12 @@ router.put("/:table/:id", update);
 router.delete("/:table", destroy);
 // Delete data from <Table> by id
 router.delete("/:table/:id", destroy);
+
+// Check if API is Alive
+router.get("/ping", (req, res) => res.json({ message: "OK" }));
+
+// Authorization
+router.get("/ping2", auth, (req, res) => res.json({ message: "OK" }));
+router.post("/login", generateToken);
 
 module.exports = router;
