@@ -25,6 +25,7 @@ db.Visitors = require("./Visitor.model.js")(sequelize, Sequelize);
 db.Views = require("./Views.model.js")(sequelize, Sequelize);
 db.Github = require("./Github.model.js")(sequelize, Sequelize);
 db.UsedLanguages = require("./UsedLanguages.model.js")(sequelize, Sequelize);
+db.Users = require("./Users.model.js")(sequelize, Sequelize);
 
 // Relation between databases
 db.Github.hasMany(db.UsedLanguages);
