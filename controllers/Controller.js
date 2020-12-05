@@ -1,5 +1,5 @@
 const { logRequest, logDebug } = require("../lib/log");
-const { errorHandler, resByType } = require("../lib/resHandler");
+const { errorHandler, resByType, getDataByType } = require("../lib/resHandler");
 const visitor = require("../services/Visitor.service");
 const views = require("../services/Views.service");
 const github = require("../services/Github.service");
@@ -72,7 +72,7 @@ exports.create = (req, res, next) => {
   logRequest("POST", `TABLE = '${table}' DATA =`, req.body);
 
   if (table) {
-    let data = new table.Data(req.body);
+    let data = new table.Data(getDataByType(req.header("Content-Type"), req.body));
 
     // Bad Request handler
     if (data.check()) {
@@ -106,7 +106,7 @@ exports.update = (req, res, next) => {
   if (table)
     table.update(
       // Data
-      req.body,
+      getDataByType(req.header("Content-Type"), req.body),
       // Query
       { ...req.query, ...req.params },
       // Callback
