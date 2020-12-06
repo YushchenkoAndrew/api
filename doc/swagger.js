@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 exports.swaggerDocument = {
   info: {
     title: "NodeJS API",

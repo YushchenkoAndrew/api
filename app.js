@@ -8,8 +8,6 @@ const router = require("./routes/routes");
 const db = require("./models/index");
 const swaggerUi = require("swagger-ui-express");
 const { swaggerDocument } = require("./doc/swagger.js");
-require("dotenv").config();
-
 const HOST = process.env.API_HOST || "127.0.0.1";
 const PORT = process.env.API_PORT || 31337;
 
@@ -48,3 +46,5 @@ app.listen(PORT, HOST, (err) => {
   logInfo("Server Started ...");
   logInfo(`Listening on Port ${PORT}`);
 });
+
+module.exports = app;

@@ -1,4 +1,3 @@
-require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { logRequest, logInfo } = require("../lib/log.js");
 const { errorHandler, resByType, getDataByType } = require("../lib/resHandler");
