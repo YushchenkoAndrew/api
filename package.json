@@ -1,10 +1,12 @@
 {
-  "name": "api_server",
+  "name": "api",
   "version": "0.0.1",
   "description": "Node.js API with Express, Sequelize & MySQL",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node -r dotenv/config app.js",
+    "dev": "nodemon -r dotenv/config app.js",
+    "test": "NODE_ENV=test mocha -r dotenv/config"
   },
   "repository": {
     "type": "git",
@@ -19,11 +21,14 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "body-parser-xml": "^2.0.0",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jsontoxml": "^1.0.1",
     "jsonwebtoken": "^8.5.1",
+    "mocha": "^8.2.1",
     "mysql2": "^2.2.5",
     "nodemon": "^2.0.6",
     "sequelize": "^6.3.5",
