@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: grimreapermortis/api-server:1.0.4
+          image: grimreapermortis/api_server:0.0.1
           ports:
             - containerPort: 31337
           imagePullPolicy: Always
