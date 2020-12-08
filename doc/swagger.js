@@ -29,8 +29,8 @@ exports.swaggerDocument = {
   ],
 
   schemes: ["http", "https"],
-  consumes: ["application/json"],
-  produces: ["application/json"],
+  consumes: ["application/json", "application/xml"],
+  produces: ["application/json", "application/xml"],
 
   paths: {
     "/api/Visitor": {
@@ -101,6 +101,10 @@ exports.swaggerDocument = {
             schema: {
               $ref: "#/definitions/Visitor",
             },
+          },
+
+          204: {
+            description: "No Content",
           },
 
           400: {
@@ -396,6 +400,10 @@ exports.swaggerDocument = {
             },
           },
 
+          204: {
+            description: "No Content",
+          },
+
           400: {
             description: "Bad Request",
             schema: {
@@ -557,6 +565,10 @@ exports.swaggerDocument = {
             schema: {
               $ref: "#/definitions/Views",
             },
+          },
+
+          204: {
+            description: "No Content",
           },
 
           400: {
@@ -806,6 +818,10 @@ exports.swaggerDocument = {
             },
           },
 
+          204: {
+            description: "No Content",
+          },
+
           400: {
             description: "Bad Request",
             schema: {
@@ -978,6 +994,10 @@ exports.swaggerDocument = {
             schema: {
               $ref: "#/definitions/Github",
             },
+          },
+
+          204: {
+            description: "No Content",
           },
 
           400: {
@@ -1249,6 +1269,10 @@ exports.swaggerDocument = {
             },
           },
 
+          204: {
+            description: "No Content",
+          },
+
           400: {
             description: "Bad Request",
             schema: {
@@ -1421,6 +1445,10 @@ exports.swaggerDocument = {
             schema: {
               $ref: "#/definitions/UsedLanguages",
             },
+          },
+
+          204: {
+            description: "No Content",
           },
 
           400: {
@@ -1690,6 +1718,10 @@ exports.swaggerDocument = {
             schema: {
               $ref: "#/definitions/UsedLanguages",
             },
+          },
+
+          204: {
+            description: "No Content",
           },
 
           400: {

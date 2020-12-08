@@ -16,13 +16,10 @@ app.use(bodyParser.json());
 
 // parse requests of content-type - application/xml
 app.use(bodyParser.xml());
-// TODO: think how to send xml file similar to json (POST REQUEST) + how to send it back
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// FIXME: Fix PUT REQUEST in swagger.json + Add XML REQUEST HANDLER
-// FIXME: + add httpStatusCode in GET REQUEST (STATUS = 204 "NO CONTENT")
 // Swagger Documentation
 app.use("/api/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
