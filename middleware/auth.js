@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { logRequest, logInfo } = require("../lib/log.js");
 const { errorHandler, resByType, getDataByType } = require("../lib/resHandler");
 const Users = require("../services/Users.service.js");
+const md5 = require("./md5");
 
 exports.authorizationToken = (req, res, next) => {
   logRequest("GET", "Authorization ...");
@@ -25,10 +26,18 @@ exports.generateToken = (req, res) => {
 
   Users.find(
     // Query
-    { user: data?.user, pass: data?.pass },
+    null,
     // Callback
-    (data) => {
-      if (!data.length) return errorHandler(406, "Incorrect User or Pass Value", req, res);
+    (res) => {
+      let found = false;
+      for (let i in res) {
+        if (md5(res[i].pass + (data?.rand ?? "")) == data?.pass) {
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) return errorHandler(406, "Incorrect User or Pass Value", req, res);
       const accessToken = jwt.sign(data[0].dataValues, process.env.SECRET_TOKEN, { expiresIn: process.env.TOKEN_EXPIRE || "600s" });
       resByType(req.header("Content-Type"), { accessToken }, res);
     },
