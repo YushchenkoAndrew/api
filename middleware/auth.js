@@ -26,19 +26,22 @@ exports.generateToken = (req, res) => {
 
   Users.find(
     // Query
-    null,
+    {  user: data?.user },
     // Callback
-    (res) => {
-      let found = false;
-      for (let i in res) {
-        if (md5(res[i].pass + (data?.rand ?? "")) == data?.pass) {
-          found = true;
+    (result) => {
+      if (!result.length) return errorHandler(406, "Incorrect User Name", req, res);
+
+      let found = null;
+      for (let i in result) {
+        const json = result[i].toJSON();
+        if (md5(json.pass + (data?.rand ?? "")) == data?.pass) {
+          found = json;
           break;
         }
       }
 
-      if (!found) return errorHandler(406, "Incorrect User or Pass Value", req, res);
-      const accessToken = jwt.sign(data[0].dataValues, process.env.SECRET_TOKEN, { expiresIn: process.env.TOKEN_EXPIRE || "600s" });
+      if (!found) return errorHandler(406, "Incorrect Pass Value", req, res);
+      const accessToken = jwt.sign(found, process.env.SECRET_TOKEN, { expiresIn: process.env.TOKEN_EXPIRE || "600s" });
       resByType(req.header("Content-Type"), { accessToken }, res);
     },
     // Error
