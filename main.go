@@ -1,27 +1,26 @@
 package main
 
 import (
-	utils "api/config"
-	"api/routes"
+	"api/config"
+	"api/db"
+	r "api/routes"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	env := new(utils.Config).Init(".")
+	config.LoadEnv(".")
 
-	db := new(utils.Database)
-	db.Init(&env)
-	db.Migrate(true)
+	db.ConnectToDB()
+	db.MigrateTables(true)
 
-	redis := new(utils.Redis)
-	redis.Init(&env)
-	redis.Test()
+	db.ConnectToRedis()
+	db.TestRedis()
 
-	r := gin.Default()
-	api := r.Group(env.BasePath)
+	routes := new(r.Routes)
 
+	api := gin.Default()
 	routes.Init(api)
 
-	r.Run(env.Host + ":" + env.Port)
+	api.Run(config.ENV.Host + ":" + config.ENV.Port)
 }

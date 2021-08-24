@@ -1,8 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+)
 
-type Env struct {
+type EnvType struct {
 	Host     string `mapstructure:"HOST"`
 	Port     string `mapstructure:"PORT"`
 	BasePath string `mapstructure:"BASE_PATH"`
@@ -19,22 +21,21 @@ type Env struct {
 	RedisPass string `mapstructure:"REDIS_PASS"`
 }
 
-type Config struct{}
+var ENV EnvType
 
-func (o *Config) Init(path string) (env Env) {
+func LoadEnv(path string) {
 	viper.AddConfigPath(path)
 	viper.SetConfigFile(".env")
 
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
-	o.CheckOnErr(&err, "Failed on reading .env file")
+	CheckOnErr(&err, "Failed on reading .env file")
 
-	err = viper.Unmarshal(&env)
-	o.CheckOnErr(&err, "Failed on reading .env file")
-	return
+	err = viper.Unmarshal(&ENV)
+	CheckOnErr(&err, "Failed on reading .env file")
 }
 
-func (*Config) CheckOnErr(err *error, msg string) {
+func CheckOnErr(err *error, msg string) {
 	if *err != nil {
 		panic(msg)
 	}

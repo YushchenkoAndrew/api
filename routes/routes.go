@@ -1,15 +1,17 @@
 package routes
 
 import (
-	// conf "api/config"
-	index "api/controllers"
+	"api/config"
 
 	"github.com/gin-gonic/gin"
 )
 
-var ctrIndex = new(index.Controller)
+type Routes struct{}
 
-func Init(rg *gin.RouterGroup) {
+func (r *Routes) Init(rg *gin.Engine) {
+	route := rg.Group(config.ENV.BasePath)
 
-	rg.GET("/ping", ctrIndex.Ping)
+	r.index(route)
+	r.info(route)
+	r.world(route)
 }
