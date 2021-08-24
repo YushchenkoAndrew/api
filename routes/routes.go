@@ -1,6 +1,7 @@
 package routes
 
 import (
+	// conf "api/config"
 	index "api/controllers"
 
 	"github.com/gin-gonic/gin"
