@@ -12,12 +12,12 @@ func main() {
 	config.LoadEnv(".")
 
 	db.ConnectToDB()
-	db.MigrateTables(true)
+	db.MigrateTables(config.ENV.ForceMigrate)
 
 	db.ConnectToRedis()
-	db.TestRedis()
+	db.RedisInitDefault()
 
-	routes := new(r.Routes)
+	routes := r.Routes{}
 
 	api := gin.Default()
 	routes.Init(api)

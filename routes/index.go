@@ -7,7 +7,7 @@ import (
 )
 
 func (*Routes) index(rg *gin.RouterGroup) {
-	cIndex := new(c.IndexController)
+	cIndex := c.IndexController{}
 
 	rg.GET("", cIndex.Navigation)
 	rg.GET("/ping", cIndex.Ping)

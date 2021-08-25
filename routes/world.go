@@ -8,7 +8,7 @@ import (
 
 func (*Routes) world(rg *gin.RouterGroup) {
 	route := rg.Group("/world")
-	cWorld := new(c.WorldController)
+	cWorld := c.WorldController{}
 
 	route.POST("", cWorld.Create)
 	route.GET("", cWorld.Read)

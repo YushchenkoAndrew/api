@@ -16,6 +16,8 @@ type EnvType struct {
 	DBUser string `mapstructure:"DB_USER"`
 	DBPass string `mapstructure:"DB_PASS"`
 
+	ForceMigrate bool `mapstructure:"FORCE_MIGRATE"`
+
 	RedisHost string `mapstructure:"REDIS_HOST"`
 	RedisPort string `mapstructure:"REDIS_PORT"`
 	RedisPass string `mapstructure:"REDIS_PASS"`

@@ -18,7 +18,7 @@ func ConnectToRedis() {
 	})
 }
 
-func TestRedis() {
+func RedisInitDefault() {
 	ctx := context.Background()
 	fmt.Println("Test Redis")
 	err := Redis.Set(ctx, "test", "HELLO WORLD", 0).Err()
