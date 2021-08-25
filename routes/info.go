@@ -8,13 +8,16 @@ import (
 
 func (*Routes) info(rg *gin.RouterGroup) {
 	route := rg.Group("/info")
-	cInfo := new(c.InfoController)
+	cInfo := c.InfoController{}
 
-	route.POST("", cInfo.Create)
+	route.POST("", cInfo.CreateOne)
+	route.POST("/list", cInfo.CreateAll)
 
 	route.GET("", cInfo.ReadAll)
 	route.GET("/:id", cInfo.ReadOne)
 
-	route.PUT("", cInfo.Update)
+	route.PUT("/:id", cInfo.UpdateOne)
+	route.PUT("", cInfo.UpdateAll)
+
 	route.DELETE("", cInfo.Delete)
 }

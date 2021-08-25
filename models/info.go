@@ -15,3 +15,13 @@ type Info struct {
 func (*Info) TableName() string {
 	return "info"
 }
+
+type ReqInfo struct {
+	// ID        uint32    `json:"id" xml:"id"`
+	// CreatedAt time.Time `json:"CreatedAt" xml:"CreatedAt"`
+	Countries string  `json:"Countries" xml:"Contries" binding:"required"`
+	Views     *uint16 `json:"Views,omitempty" xml:"Views"`
+	Clicks    *uint16 `json:"Clicks,omitempty" xml:"Clicks"`
+	Media     *uint16 `json:"Media,omitempty" xml:"Media"`
+	Visitors  *uint16 `json:"Visitors,omitempty" xml:"Visitors"`
+}
