@@ -12,13 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SubRoutes struct {
-	info info.Routes
-}
-type Routes struct {
-	sub SubRoutes
-}
-
 // @title Swagger Example API
 // @version 1.0
 // @description This is a sample server Petstore server.
@@ -35,15 +28,15 @@ type Routes struct {
 // @BasePath /api
 
 // @Router /info [get]
-func (r *Routes) Init(rg *gin.Engine) {
+func Init(rg *gin.Engine) {
 	route := rg.Group(config.ENV.BasePath)
 
-	r.index(route)
-	r.info(route)
-	r.world(route)
+	Index(route)
+	Info(route)
+	World(route)
 
 	// Init SubRoutes
-	r.sub.info.Init(route)
+	info.Init(route)
 
 	// url := ginSwagger.URL("http://localhost:31337/api/swagger/doc.json")
 	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

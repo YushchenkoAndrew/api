@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (*Routes) info(rg *gin.RouterGroup) {
+func Info(rg *gin.RouterGroup) {
 	route := rg.Group("/info")
 	cInfo := c.InfoController{}
 

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (*Routes) world(rg *gin.RouterGroup) {
+func World(rg *gin.RouterGroup) {
 	route := rg.Group("/world")
 	cWorld := c.WorldController{}
 

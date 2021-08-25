@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (*Routes) sum(rg *gin.RouterGroup) {
+func Sum(rg *gin.RouterGroup) {
 	route := rg.Group("/sum")
 	cSum := c.SumController{}
 

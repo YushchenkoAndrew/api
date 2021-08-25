@@ -3,7 +3,7 @@ package main
 import (
 	"api/config"
 	"api/db"
-	r "api/routes"
+	"api/routes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,10 +17,8 @@ func main() {
 	db.ConnectToRedis()
 	db.RedisInitDefault()
 
-	routes := r.Routes{}
+	r := gin.Default()
+	routes.Init(r)
 
-	api := gin.Default()
-	routes.Init(api)
-
-	api.Run(config.ENV.Host + ":" + config.ENV.Port)
+	r.Run(config.ENV.Host + ":" + config.ENV.Port)
 }

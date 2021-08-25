@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (*Routes) index(rg *gin.RouterGroup) {
+func Index(rg *gin.RouterGroup) {
 	cIndex := c.IndexController{}
 
 	rg.GET("", cIndex.Navigation)
