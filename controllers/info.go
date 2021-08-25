@@ -14,28 +14,30 @@ import (
 
 var info []models.Info
 
-type InfoController struct {
-	*Controller
-}
+type InfoController struct{}
 
-func (*InfoController) filterQuery(c *gin.Context) *gorm.DB {
-	resHandlerult := db.DB
+func (*InfoController) filterQuery(c *gin.Context) (*gorm.DB, bool) {
+	bInUse := false
+	result := db.DB
 	id, err := strconv.Atoi(c.DefaultQuery("id", "-1"))
 	if err == nil && id > 0 {
-		resHandlerult = resHandlerult.Where("id = ?", id)
+		bInUse = bInUse || true
+		result = result.Where("id = ?", id)
 	}
 
 	createdAt := c.DefaultQuery("created_at", "")
 	if createdAt != "" {
-		resHandlerult = resHandlerult.Where("created_at = ?", createdAt)
+		bInUse = bInUse || true
+		result = result.Where("created_at = ?", createdAt)
 	}
 
-	countries := c.DefaultQuery("country", "")
+	countries := c.DefaultQuery("countries", "")
 	if countries != "" {
-		resHandlerult = resHandlerult.Where("countries IN ?", strings.Split(countries, ","))
+		bInUse = bInUse || true
+		result = result.Where("countries IN ?", strings.Split(countries, ","))
 	}
 
-	return resHandlerult.Find(&info)
+	return result.Find(&info), bInUse
 }
 
 func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
@@ -62,18 +64,18 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 	var model models.Info
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {
-		o.errHandler(c, http.StatusBadRequest, "Incorrect body params")
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params or id parm")
 		return
 	}
 
 	o.parseBody(&body, &model)
 	result := db.DB.Create(&model)
 	if result.Error != nil {
-		o.errHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		return
 	}
 
-	o.resHandler(c, http.StatusCreated, &gin.H{
+	helper.ResHandler(c, http.StatusCreated, &gin.H{
 		"status":     "OK",
 		"result":     model,
 		"items":      result.RowsAffected,
@@ -84,7 +86,7 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 func (o *InfoController) CreateAll(c *gin.Context) {
 	var body []models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {
-		o.errHandler(c, http.StatusBadRequest, "Incorrect body params")
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
 	}
 
@@ -93,46 +95,47 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 		o.parseBody(&body[i], &models[i])
 	}
 
-	resHandlerult := db.DB.Create(&models)
-	if resHandlerult.Error != nil {
-		o.errHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+	result := db.DB.Create(&models)
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		return
 	}
 
-	o.resHandler(c, http.StatusCreated, &gin.H{
+	helper.ResHandler(c, http.StatusCreated, &gin.H{
 		"status":        "OK",
 		"resHandlerult": models,
-		"items":         resHandlerult.RowsAffected,
+		"items":         result.RowsAffected,
 		"totalItems":    20 + 1,
 	})
 }
 
 func (o *InfoController) ReadOne(c *gin.Context) {
 	var id int
-	if !o.getID(c, &id) {
-		o.errHandler(c, http.StatusBadRequest, "Incorrect id value")
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id value")
 		return
 	}
 
-	resHandlerult := db.DB.Where("id = ?", id).Find(&info)
-	o.resHandler(c, http.StatusOK, &gin.H{
+	result := db.DB.Where("id = ?", id).Find(&info)
+	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     info,
-		"items":      resHandlerult.RowsAffected,
+		"items":      result.RowsAffected,
 		"totalItems": 20,
 	})
 }
 
 func (o *InfoController) ReadAll(c *gin.Context) {
 	page, limit := helper.Pagination(c)
-	resHandlerult := o.filterQuery(c).Offset(page * 20).Limit(limit)
+	result, _ := o.filterQuery(c)
+	result = result.Offset(page * 20).Limit(limit)
 
-	o.resHandler(c, http.StatusOK, &gin.H{
+	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     info,
 		"page":       page,
 		"limit":      limit,
-		"items":      resHandlerult.RowsAffected,
+		"items":      result.RowsAffected,
 		"totalItems": 20,
 	})
 }
@@ -140,16 +143,20 @@ func (o *InfoController) ReadAll(c *gin.Context) {
 func (o *InfoController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqInfo
-	if err := c.ShouldBind(&body); err != nil || !o.getID(c, &id) {
-		o.errHandler(c, http.StatusBadRequest, "Incorrect body params")
+	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
 	}
 
 	var model models.Info
 	o.parseBody(&body, &model)
 	result := db.DB.Where("id = ?", id).Updates(&model)
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		return
+	}
 
-	o.resHandler(c, http.StatusOK, &gin.H{
+	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     model,
 		"items":      result.RowsAffected,
@@ -157,10 +164,77 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 	})
 }
 
-func (*InfoController) UpdateAll(c *gin.Context) {
+func (o *InfoController) UpdateAll(c *gin.Context) {
+	var body models.ReqInfo
+	if err := c.ShouldBind(&body); err != nil {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+		return
+	}
 
+	var bInUse bool
+	var result *gorm.DB
+	var model models.Info
+
+	o.parseBody(&body, &model)
+	if result, bInUse = o.filterQuery(c); !bInUse {
+		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
+		return
+	}
+
+	result = result.Updates(&model)
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		return
+	}
+
+	helper.ResHandler(c, http.StatusOK, &gin.H{
+		"status":     "OK",
+		"result":     model,
+		"items":      result.RowsAffected,
+		"totalItems": 20,
+	})
 }
 
-func (*InfoController) Delete(c *gin.Context) {
+func (o *InfoController) DeleteOne(c *gin.Context) {
+	var id int
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
+		return
+	}
 
+	result := db.DB.Where("id = ?", id).Delete(&models.Info{})
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		return
+	}
+
+	helper.ResHandler(c, http.StatusOK, &gin.H{
+		"status":     "OK",
+		"result":     []string{},
+		"items":      result.RowsAffected,
+		"totalItems": 20,
+	})
+}
+
+func (o *InfoController) DeleteAll(c *gin.Context) {
+	var bInUse bool
+	var result *gorm.DB
+
+	if result, bInUse = o.filterQuery(c); !bInUse {
+		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
+		return
+	}
+
+	result = result.Delete(&models.Info{})
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		return
+	}
+
+	helper.ResHandler(c, http.StatusOK, &gin.H{
+		"status":     "OK",
+		"result":     []string{},
+		"items":      result.RowsAffected,
+		"totalItems": 20,
+	})
 }

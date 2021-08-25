@@ -29,3 +29,29 @@ func Pagination(c *gin.Context) (page int, limit int) {
 	}
 	return
 }
+
+func GetID(c *gin.Context, id *int) bool {
+	var err error
+	if *id, err = strconv.Atoi(c.Param("id")); err != nil || *id <= 0 {
+		return false
+	}
+	return true
+}
+
+func ResHandler(c *gin.Context, stat int, data *gin.H) {
+	switch c.GetHeader("Accept") {
+	case "application/xml":
+		c.XML(stat, *data)
+
+	default:
+		c.JSON(stat, *data)
+	}
+}
+
+func ErrHandler(c *gin.Context, stat int, message string) {
+	ResHandler(c, stat, &gin.H{
+		"status":  "ERR",
+		"result":  []string{},
+		"message": message,
+	})
+}
