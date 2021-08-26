@@ -18,7 +18,7 @@ func (o *SumController) Read(c *gin.Context) {
 	var stat models.StatInfo
 	ctx := context.Background()
 
-	if data, err := db.Redis.Get(ctx, "Info:Stat").Result(); err == nil {
+	if data, err := db.Redis.Get(ctx, "Info:Sum").Result(); err == nil {
 		json.Unmarshal([]byte(data), &stat)
 	} else {
 		db.DB.Table("info").
@@ -27,7 +27,7 @@ func (o *SumController) Read(c *gin.Context) {
 
 		// Encode json to str
 		if str, err := json.Marshal(&stat); err == nil {
-			go db.Redis.Set(ctx, "Info:Stat", str, 0)
+			go db.Redis.Set(ctx, "Info:Sum", str, 0)
 		}
 	}
 
@@ -40,7 +40,7 @@ func (o *SumController) Read(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
-		"result":     stat,
+		"result":     []models.StatInfo{stat},
 		"items":      1,
 		"totalItems": items,
 	})
