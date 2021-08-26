@@ -21,6 +21,10 @@ type EnvType struct {
 	RedisHost string `mapstructure:"REDIS_HOST"`
 	RedisPort string `mapstructure:"REDIS_PORT"`
 	RedisPass string `mapstructure:"REDIS_PASS"`
+
+	LiveTime int64 `mapstructure:"LIVE_TIME"`
+	Items    int   `mapstructure:"ITEMS"`
+	Limit    int   `mapstructure:"LIMIT"`
 }
 
 var ENV EnvType
