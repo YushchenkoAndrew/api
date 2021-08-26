@@ -46,6 +46,10 @@ func (*InfoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 	model.Countries = body.Countries
 
+	if body.CreatedAt != nil {
+		model.CreatedAt = *body.CreatedAt
+	}
+
 	if body.Views != nil {
 		model.Views = *body.Views
 	}
@@ -66,7 +70,7 @@ func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 func (o *InfoController) CreateOne(c *gin.Context) {
 	var model models.Info
 	var body models.ReqInfo
-	if err := c.ShouldBind(&body); err != nil {
+	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params or id parm")
 		return
 	}
@@ -88,6 +92,7 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
+	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusCreated, &gin.H{
 		"status":     "OK",
 		"result":     model,
@@ -105,6 +110,11 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 
 	var models = make([]models.Info, len(body))
 	for i := 0; i < len(body); i++ {
+		if body[i].Countries == "" {
+			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+			return
+		}
+
 		o.parseBody(&body[i], &models[i])
 	}
 
@@ -123,6 +133,7 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 	}
 
 	// Make an update without stoping the response handler
+	go db.Redis.Del(ctx, "Info:Sum")
 	go db.RedisAdd(&ctx, "nInfo", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, &gin.H{
 		"status":        "OK",
@@ -256,6 +267,7 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
+	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     model,
@@ -296,6 +308,7 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
+	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     model,
@@ -323,7 +336,6 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	db.Redis.Decr(ctx, "nInfo")
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
@@ -331,6 +343,13 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
+	if items == 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+		return
+	}
+
+	go db.Redis.Decr(ctx, "nInfo")
+	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     []string{},
@@ -362,6 +381,12 @@ func (o *InfoController) DeleteAll(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
+	if items == 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+		return
+	}
+
+	go db.Redis.Del(ctx, "Info:Sum")
 	go db.RedisSub(&ctx, "nInfo", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",

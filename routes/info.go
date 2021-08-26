@@ -17,7 +17,6 @@ func Info(rg *gin.RouterGroup) {
 	// @Header 200,400,default {string} Token "token"
 	// @Header all {string} Token2 "token2"
 	route.POST("", cInfo.CreateOne)
-
 	route.POST("/list", cInfo.CreateAll)
 
 	route.GET("", cInfo.ReadAll)
