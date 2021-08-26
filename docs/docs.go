@@ -17,14 +17,13 @@ var doc = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
             "url": "http://www.swagger.io/support",
             "email": "support@swagger.io"
         },
         "license": {
-            "name": "Apache 2.0",
+            "name": "MIT",
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         },
         "version": "{{.Version}}"
@@ -50,11 +49,11 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "petstore.swagger.io",
+	Host:        "mortis-grimreaper.ddns.net",
 	BasePath:    "/api",
 	Schemes:     []string{},
-	Title:       "Swagger Example API",
-	Description: "This is a sample server Petstore server.",
+	Title:       "Gin API",
+	Description: "Remake of my previous attampted on creating API with Node.js",
 }
 
 type s struct{}

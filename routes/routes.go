@@ -12,19 +12,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @title Swagger Example API
+// @title Gin API
 // @version 1.0
-// @description This is a sample server Petstore server.
-// @termsOfService http://swagger.io/terms/
+// @description Remake of my previous attampted on creating API with Node.js
 
 // @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
+// @contact.url https://mortis-grimreaper.ddns.net/projects
 
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.name MIT
+// @license.url https://github.com/YushchenkoAndrew/API_Server/blob/master/LICENSE
 
-// @host petstore.swagger.io
+// @host mortis-grimreaper.ddns.net:31337
 // @BasePath /api
 
 // @Router /info [get]
@@ -38,6 +36,6 @@ func Init(rg *gin.Engine) {
 	// Init SubRoutes
 	info.Init(route)
 
-	// url := ginSwagger.URL("http://localhost:31337/api/swagger/doc.json")
+	// Init Route by hand
 	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

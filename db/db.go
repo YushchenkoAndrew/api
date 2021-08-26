@@ -25,10 +25,12 @@ func MigrateTables(bForce bool) {
 	if bForce {
 		DB.Migrator().DropTable(
 			&models.Info{},
-			&models.World{})
+			&models.World{},
+		)
 	}
 
 	DB.AutoMigrate(
 		&models.Info{},
-		&models.World{})
+		&models.World{},
+	)
 }

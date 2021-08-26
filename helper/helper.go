@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"api/config"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -24,9 +25,7 @@ func Pagination(c *gin.Context) (page int, limit int) {
 		page = 0
 	}
 
-	if limit, err = strconv.Atoi(c.DefaultQuery("limit", "20")); err != nil {
-		limit = 20
-	}
+	limit = config.ENV.Limit
 	return
 }
 

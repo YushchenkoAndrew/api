@@ -4,7 +4,7 @@ import "time"
 
 type Info struct {
 	ID        uint32    `gorm:"primaryKey"`
-	CreatedAt time.Time `gorm:"default:CURRENT_DATE"`
+	CreatedAt time.Time `gorm:"default:CURRENT_DATE;unique"`
 	Countries string
 	Views     uint16 `gorm:"default:0"`
 	Clicks    uint16 `gorm:"default:0"`
@@ -24,4 +24,11 @@ type ReqInfo struct {
 	Clicks    *uint16 `json:"Clicks,omitempty" xml:"Clicks"`
 	Media     *uint16 `json:"Media,omitempty" xml:"Media"`
 	Visitors  *uint16 `json:"Visitors,omitempty" xml:"Visitors"`
+}
+
+type StatInfo struct {
+	Views    uint16
+	Clicks   uint16
+	Media    uint16
+	Visitors uint16
 }
