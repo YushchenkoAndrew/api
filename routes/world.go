@@ -10,8 +10,15 @@ func World(rg *gin.RouterGroup) {
 	route := rg.Group("/world")
 	cWorld := c.WorldController{}
 
-	route.POST("", cWorld.Create)
-	route.GET("", cWorld.Read)
-	route.PUT("", cWorld.Update)
-	route.DELETE("", cWorld.Delete)
+	route.POST("", cWorld.CreateOne)
+	route.POST("/list", cWorld.CreateAll)
+
+	route.GET("/:id", cWorld.ReadOne)
+	route.GET("", cWorld.ReadAll)
+
+	route.PUT("/:id", cWorld.UpdateOne)
+	route.PUT("", cWorld.UpdateAll)
+
+	route.DELETE("/:id", cWorld.DeleteOne)
+	route.DELETE("", cWorld.DeleteAll)
 }

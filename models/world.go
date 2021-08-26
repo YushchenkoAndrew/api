@@ -12,3 +12,10 @@ type World struct {
 func (*World) TableName() string {
 	return "world"
 }
+
+type ReqWorld struct {
+	// ID        uint32
+	// UpdatedAt time.Time
+	Country  string  `json:"Country" xml:"Country"`
+	Visitors *uint16 `json:"Visitors" xml:"Visitors"`
+}
