@@ -117,7 +117,7 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 	}
 
 	// Make an update without stoping the response handler
-	go db.RedisAdd(&ctx, "nWorld", result.RowsAffected)
+	go helper.RedisAdd(&ctx, "nWorld", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, &gin.H{
 		"status":        "OK",
 		"resHandlerult": models,
@@ -177,6 +177,10 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 	page, limit := helper.Pagination(c)
 	result, sKeys := o.filterQuery(c)
 	key := "World:" + c.DefaultQuery(sKeys, "-1")
+
+	// NOTE: Maybe add this feature at some point
+	// orderBy := c.DefaultQuery("orderBy", "")
+	// desc := c.DefaultQuery("desc", "") != ""
 
 	if sKeys == "id" || sKeys == "updated_at" {
 		// Check if cache have requested data
@@ -366,7 +370,7 @@ func (o *WorldController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go db.RedisSub(&ctx, "nWorld", result.RowsAffected)
+	go helper.RedisSub(&ctx, "nWorld", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     []string{},

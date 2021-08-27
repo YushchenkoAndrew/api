@@ -43,15 +43,3 @@ func RedisInitDefault() {
 	// SetVar(&ctx, "nLiveTime", conf.LiveTime)
 	// SetVar(&ctx, "nUsersReq", conf.UsersReq)
 }
-
-func RedisAdd(ctx *context.Context, sParam string, nSize int64) {
-	for i := 0; i < int(nSize); i++ {
-		Redis.Incr(*ctx, sParam)
-	}
-}
-
-func RedisSub(ctx *context.Context, sParam string, nSize int64) {
-	for i := 0; i < int(nSize); i++ {
-		Redis.Decr(*ctx, sParam)
-	}
-}

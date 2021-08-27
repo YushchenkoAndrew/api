@@ -134,7 +134,7 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 
 	// Make an update without stoping the response handler
 	go db.Redis.Del(ctx, "Info:Sum")
-	go db.RedisAdd(&ctx, "nInfo", result.RowsAffected)
+	go helper.RedisAdd(&ctx, "nInfo", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, &gin.H{
 		"status":        "OK",
 		"resHandlerult": models,
@@ -387,7 +387,7 @@ func (o *InfoController) DeleteAll(c *gin.Context) {
 	}
 
 	go db.Redis.Del(ctx, "Info:Sum")
-	go db.RedisSub(&ctx, "nInfo", result.RowsAffected)
+	go helper.RedisSub(&ctx, "nInfo", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, &gin.H{
 		"status":     "OK",
 		"result":     []string{},

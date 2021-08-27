@@ -2,7 +2,9 @@ package helper
 
 import (
 	"api/config"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,20 +39,11 @@ func GetID(c *gin.Context, id *int) bool {
 	return true
 }
 
-func ResHandler(c *gin.Context, stat int, data *gin.H) {
-	switch c.GetHeader("Accept") {
-	case "application/xml":
-		c.XML(stat, *data)
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
-	default:
-		c.JSON(stat, *data)
-	}
-}
-
-func ErrHandler(c *gin.Context, stat int, message string) {
-	ResHandler(c, stat, &gin.H{
-		"status":  "ERR",
-		"result":  []string{},
-		"message": message,
-	})
+func ToSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
 }
