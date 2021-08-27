@@ -11,4 +11,5 @@ func Sum(rg *gin.RouterGroup) {
 	cSum := c.SumController{}
 
 	route.GET("", cSum.Read)
+	route.PUT("", cSum.Update)
 }
