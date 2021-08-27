@@ -8,4 +8,5 @@ func Init(rg *gin.RouterGroup) {
 	route := rg.Group("/info")
 
 	Sum(route)
+	Range(route)
 }
