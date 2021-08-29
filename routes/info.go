@@ -10,14 +10,9 @@ func Info(rg *gin.RouterGroup) {
 	route := rg.Group("/info")
 	cInfo := c.InfoController{}
 
-	// @Success 200 {string} string	"ok"
-	// @failure 400 {string} string	"error"
-	// @response default {string} string	"other error"
-	// @Header 200 {string} Location "/entity/1"
-	// @Header 200,400,default {string} Token "token"
-	// @Header all {string} Token2 "token2"
-	route.POST("", cInfo.CreateOne)
+	route.POST("", cInfo.Create)
 	route.POST("/list", cInfo.CreateAll)
+	route.POST("/:date", cInfo.CreateOne)
 
 	route.GET("", cInfo.ReadAll)
 	route.GET("/:id", cInfo.ReadOne)

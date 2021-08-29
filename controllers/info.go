@@ -46,9 +46,10 @@ func (*InfoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 	model.Countries = body.Countries
 
-	if body.CreatedAt != nil {
-		model.CreatedAt = *body.CreatedAt
-	}
+	// FIXME: If need it
+	// if body.CreatedAt != nil {
+	// 	model.CreatedAt = *body.CreatedAt
+	// }
 
 	if body.Views != nil {
 		model.Views = *body.Views
@@ -67,7 +68,18 @@ func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 	}
 }
 
-func (o *InfoController) CreateOne(c *gin.Context) {
+// TODO: Create Swagger Doc !!!
+
+// @Summary Create Info
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+
+// FIXME: models.Error
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info [post]
+func (o *InfoController) Create(c *gin.Context) {
 	var model models.Info
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
@@ -101,6 +113,15 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 	})
 }
 
+// @Summary Create/Update Info
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param date path string true "CreatedAt"
+// @Success 201 {object} models.Info
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info/{date} [post]
 func (o *InfoController) CreateOne(c *gin.Context) {
 	var date = c.Param("date")
 	var body models.ReqInfo
@@ -163,6 +184,16 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 		"totalItems": items,
 	})
 }
+
+// @Summary Create Info
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param date path string true "CreatedAt"
+// @Success 201 {object} models.Info
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info/list [post]
 func (o *InfoController) CreateAll(c *gin.Context) {
 	var body []models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {

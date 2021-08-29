@@ -19,12 +19,12 @@ var doc = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
+            "url": "https://mortis-grimreaper.ddns.net/projects",
+            "email": "AndrewYushchenko@gmail.com"
         },
         "license": {
             "name": "MIT",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+            "url": "https://github.com/YushchenkoAndrew/API_Server/blob/master/LICENSE"
         },
         "version": "{{.Version}}"
     },
@@ -32,7 +32,143 @@ var doc = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/info": {
-            "get": {}
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "summary": "Create Info",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/info/list": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "summary": "Create Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CreatedAt",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Info"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/info/{date}": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "summary": "Create/Update Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CreatedAt",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Info"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Error": {
+            "type": "object"
+        },
+        "models.Info": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "type": "integer"
+                },
+                "countries": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "media": {
+                    "type": "integer"
+                },
+                "views": {
+                    "type": "integer"
+                },
+                "visitors": {
+                    "type": "integer"
+                }
+            }
         }
     }
 }`
@@ -49,7 +185,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "mortis-grimreaper.ddns.net",
+	Host:        "mortis-grimreaper.ddns.net:31337",
 	BasePath:    "/api",
 	Schemes:     []string{},
 	Title:       "Gin API",

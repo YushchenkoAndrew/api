@@ -18,14 +18,13 @@ import (
 
 // @contact.name API Support
 // @contact.url https://mortis-grimreaper.ddns.net/projects
+// @contact.email AndrewYushchenko@gmail.com
 
 // @license.name MIT
 // @license.url https://github.com/YushchenkoAndrew/API_Server/blob/master/LICENSE
 
 // @host mortis-grimreaper.ddns.net:31337
 // @BasePath /api
-
-// @Router /info [get]
 func Init(rg *gin.Engine) {
 	route := rg.Group(config.ENV.BasePath)
 

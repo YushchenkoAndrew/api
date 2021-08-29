@@ -1,17 +1,106 @@
 basePath: /api
-host: mortis-grimreaper.ddns.net
+definitions:
+  models.Error:
+    type: object
+  models.Info:
+    properties:
+      clicks:
+        type: integer
+      countries:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      media:
+        type: integer
+      views:
+        type: integer
+      visitors:
+        type: integer
+    type: object
+host: mortis-grimreaper.ddns.net:31337
 info:
   contact:
-    email: support@swagger.io
+    email: AndrewYushchenko@gmail.com
     name: API Support
-    url: http://www.swagger.io/support
+    url: https://mortis-grimreaper.ddns.net/projects
   description: Remake of my previous attampted on creating API with Node.js
   license:
     name: MIT
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    url: https://github.com/YushchenkoAndrew/API_Server/blob/master/LICENSE
   title: Gin API
   version: "1.0"
 paths:
   /info:
-    get: {}
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Create Info
+  /info/{date}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: CreatedAt
+        in: path
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Info'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Create/Update Info
+  /info/list:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: CreatedAt
+        in: path
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Info'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Create Info
 swagger: "2.0"
