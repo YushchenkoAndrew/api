@@ -101,6 +101,68 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 	})
 }
 
+func (o *InfoController) CreateOne(c *gin.Context) {
+	var date = c.Param("date")
+	var body models.ReqInfo
+	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body is not setted")
+		return
+	}
+
+	created, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect date param")
+		return
+	}
+
+	var result = db.DB
+	var model []models.Info
+	ctx := context.Background()
+
+	key := "Info:" + date
+	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
+		json.Unmarshal([]byte(data), &model)
+		result.RowsAffected = int64(len(model))
+	} else {
+		result = db.DB.Where("created_at = ?", date).Find(&model)
+		model = make([]models.Info, 1)
+	}
+
+	model[0].CreatedAt = created
+	o.parseBody(&body, &model[0])
+	if result.RowsAffected == 0 {
+		result = db.DB.Create(&model)
+	} else {
+		result = db.DB.Where("created_at = ?", date).Updates(&model[0])
+	}
+
+	if result.Error != nil || result.RowsAffected == 0 {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Something unexpected happend")
+		return
+	}
+
+	// Encode json to str
+	if str, err := json.Marshal(&model); err == nil {
+		go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
+	}
+
+	db.Redis.Incr(ctx, "nInfo")
+	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		fmt.Println("Something wrong with Caching!!!")
+	}
+
+	// Make an update without stoping the response handler
+	go db.Redis.Del(ctx, "Info:Sum")
+	helper.ResHandler(c, http.StatusCreated, &gin.H{
+		"status":     "OK",
+		"result":     model,
+		"items":      result.RowsAffected,
+		"totalItems": items,
+	})
+}
 func (o *InfoController) CreateAll(c *gin.Context) {
 	var body []models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {
