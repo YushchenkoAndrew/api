@@ -194,7 +194,12 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 	}
 
 	if len(model) == 0 {
-		result = result.Offset(page * config.ENV.Items).Limit(limit).Find(&model)
+		if page != -1 {
+			result = result.Offset(page * config.ENV.Items).Limit(limit).Find(&model)
+		} else {
+			result = result.Find(&model)
+		}
+
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 			return

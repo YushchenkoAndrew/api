@@ -36,10 +36,10 @@ func (*RangeController) Read(c *gin.Context) {
 		result = result.Where("created_at <= ? AND created_at >= ?", end, start)
 
 	case 1:
-		result = result.Where("created_at > ?", start)
+		result = result.Where("created_at >= ?", start)
 
 	case 2:
-		result = result.Where("created_at < ?", end)
+		result = result.Where("created_at <= ?", end)
 
 	}
 
