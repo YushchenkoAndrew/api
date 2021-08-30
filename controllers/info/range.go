@@ -14,6 +14,18 @@ import (
 
 type RangeController struct{}
 
+// @Tags Info
+// @Summary Get Info data by date Range
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param start query string true "CreatedAt date >= start"
+// @Param end query string false "CreatedAt date <= end"
+// @Param orderBy query string false "Column which final result will be sorted by"
+// @Param desc query int false "Sort by direction"
+// @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 500 {object} models.Error
+// @Router /info/range [get]
 func (*RangeController) Read(c *gin.Context) {
 	var model []models.Info
 	ctx := context.Background()
@@ -59,12 +71,12 @@ func (*RangeController) Read(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"page":       page,
-		"limit":      limit,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Page:       page,
+		Limit:      limit,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }

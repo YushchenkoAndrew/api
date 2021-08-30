@@ -29,7 +29,7 @@ func (*WorldController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 
 	updatedAll := c.DefaultQuery("updated_at", "")
 	if updatedAll != "" {
-		sKeys += "update_all"
+		sKeys += "updated_at"
 		result = result.Where("updated_at = ?", updatedAll)
 	}
 
@@ -52,15 +52,25 @@ func (*WorldController) parseBody(body *models.ReqWorld, model *models.World) {
 	}
 }
 
+// @Tags World
+// @Summary Create one instace of World
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param model body models.ReqWorld true "World Data"
+// @Success 201 {object} models.Success{result=[]models.World}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world [post]
 func (o *WorldController) CreateOne(c *gin.Context) {
-	var model models.World
+	var model = make([]models.World, 1)
 	var body models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil || body.Country == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params or id parm")
 		return
 	}
 
-	o.parseBody(&body, &model)
+	o.parseBody(&body, &model[0])
 	result := db.DB.Create(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
@@ -77,14 +87,24 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusCreated, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags World
+// @Summary Create World from list of objects
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param model body []models.ReqWorld true "List of World Data"
+// @Success 201 {object} models.Success{result=[]models.World}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world/list [post]
 func (o *WorldController) CreateAll(c *gin.Context) {
 	var body []models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil {
@@ -92,17 +112,17 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 		return
 	}
 
-	var models = make([]models.World, len(body))
+	var model = make([]models.World, len(body))
 	for i := 0; i < len(body); i++ {
 		if body[i].Country == "" {
 			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 			return
 		}
 
-		o.parseBody(&body[i], &models[i])
+		o.parseBody(&body[i], &model[i])
 	}
 
-	result := db.DB.Create(&models)
+	result := db.DB.Create(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		return
@@ -118,14 +138,24 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 
 	// Make an update without stoping the response handler
 	go helper.RedisAdd(&ctx, "nWorld", result.RowsAffected)
-	helper.ResHandler(c, http.StatusCreated, &gin.H{
-		"status":        "OK",
-		"resHandlerult": models,
-		"items":         result.RowsAffected,
-		"totalItems":    items + result.RowsAffected,
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items + result.RowsAffected,
 	})
 }
 
+// @Tags World
+// @Summary Read World by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id path int true "Instance id"
+// @Success 200 {object} models.Success{result=[]models.World}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world/{id} [get]
 func (*WorldController) ReadOne(c *gin.Context) {
 	var id int
 	var model []models.World
@@ -162,14 +192,26 @@ func (*WorldController) ReadOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      1,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      1,
+		TotalItems: items,
 	})
 }
 
+// @Tags World
+// @Summary Read All World
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id query int false "Instance :id"
+// @Param updated_at query string false "UpdatedAt date"
+// @Param country query string false "Country: 'UK'"
+// @Success 200 {object} models.Success{result=[]models.World}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world [get]
 func (o *WorldController) ReadAll(c *gin.Context) {
 	var model []models.World
 	ctx := context.Background()
@@ -220,16 +262,27 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"page":       page,
-		"limit":      limit,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Page:       page,
+		Limit:      limit,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags World
+// @Summary Update World by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id path int true "Instance id"
+// @Param model body models.ReqWorld true "World Data"
+// @Success 200 {object} models.Success{result=[]models.World}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world/{id} [put]
 func (o *WorldController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqWorld
@@ -259,14 +312,27 @@ func (o *WorldController) UpdateOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags World
+// @Summary Update World by Query
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id query int false "Instance :id"
+// @Param updated_at query string false "UpdatedAt date"
+// @Param country query string false "Country: 'UK'"
+// @Param model body models.ReqWorld true "World Data"
+// @Success 200 {object} models.Success{result=[]models.World}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world [put]
 func (o *WorldController) UpdateAll(c *gin.Context) {
 	var body models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil {
@@ -299,14 +365,24 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags World
+// @Summary Delete World by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id path int true "Instance id"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world/{id} [delete]
 func (*WorldController) DeleteOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
@@ -339,14 +415,26 @@ func (*WorldController) DeleteOne(c *gin.Context) {
 	}
 
 	go db.Redis.Decr(ctx, "nWorld")
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     []string{},
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags World
+// @Summary Delete World by Query
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id query int false "Instance :id"
+// @Param updated_at query string false "UpdatedAt date"
+// @Param country query string false "Country: 'UK'"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /world [delete]
 func (o *WorldController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
@@ -376,10 +464,10 @@ func (o *WorldController) DeleteAll(c *gin.Context) {
 	}
 
 	go helper.RedisSub(&ctx, "nWorld", result.RowsAffected)
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     []string{},
-		"items":      result.RowsAffected,
-		"totalItems": items - result.RowsAffected,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items - result.RowsAffected,
 	})
 }

@@ -4,9 +4,6 @@ import (
 	"api/config"
 	info "api/routes/info"
 
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-
 	_ "api/docs"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +20,9 @@ import (
 // @license.name MIT
 // @license.url https://github.com/YushchenkoAndrew/API_Server/blob/master/LICENSE
 
-// @host mortis-grimreaper.ddns.net:31337
+//  FIXME: DEBUG OPTION
+// host mortis-grimreaper.ddns.net:31337
+// @host 127.0.0.1:31337
 // @BasePath /api
 func Init(rg *gin.Engine) {
 	route := rg.Group(config.ENV.BasePath)
@@ -34,7 +33,4 @@ func Init(rg *gin.Engine) {
 
 	// Init SubRoutes
 	info.Init(route)
-
-	// Init Route by hand
-	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

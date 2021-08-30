@@ -68,26 +68,26 @@ func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 	}
 }
 
-// TODO: Create Swagger Doc !!!
-
-// @Summary Create Info
+// @Tags Info
+// @Summary Create one instace of Info
+// @Description 'CreatedAt' setted automatically
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
-
-// FIXME: models.Error
+// @Param model body models.ReqInfo true "Info Data"
+// @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [post]
 func (o *InfoController) Create(c *gin.Context) {
-	var model models.Info
+	var model = make([]models.Info, 1)
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params or id parm")
 		return
 	}
 
-	o.parseBody(&body, &model)
+	o.parseBody(&body, &model[0])
 	result := db.DB.Create(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
@@ -105,20 +105,22 @@ func (o *InfoController) Create(c *gin.Context) {
 	}
 
 	go db.Redis.Del(ctx, "Info:Sum")
-	helper.ResHandler(c, http.StatusCreated, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags Info
 // @Summary Create/Update Info
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
-// @Param date path string true "CreatedAt"
-// @Success 201 {object} models.Info
+// @Param date path string true "Created at instance"
+// @Param model body models.ReqInfo true "Info Data"
+// @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{date} [post]
@@ -177,20 +179,21 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 
 	// Make an update without stoping the response handler
 	go db.Redis.Del(ctx, "Info:Sum")
-	helper.ResHandler(c, http.StatusCreated, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
-// @Summary Create Info
+// @Tags Info
+// @Summary Create Info from list of objects
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
-// @Param date path string true "CreatedAt"
-// @Success 201 {object} models.Info
+// @Param model body []models.ReqInfo true "List of Info Data"
+// @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/list [post]
@@ -201,17 +204,17 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 		return
 	}
 
-	var models = make([]models.Info, len(body))
+	var model = make([]models.Info, len(body))
 	for i := 0; i < len(body); i++ {
 		if body[i].Countries == "" {
 			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 			return
 		}
 
-		o.parseBody(&body[i], &models[i])
+		o.parseBody(&body[i], &model[i])
 	}
 
-	result := db.DB.Create(&models)
+	result := db.DB.Create(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		return
@@ -228,14 +231,24 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 	// Make an update without stoping the response handler
 	go db.Redis.Del(ctx, "Info:Sum")
 	go helper.RedisAdd(&ctx, "nInfo", result.RowsAffected)
-	helper.ResHandler(c, http.StatusCreated, &gin.H{
-		"status":        "OK",
-		"resHandlerult": models,
-		"items":         result.RowsAffected,
-		"totalItems":    items + result.RowsAffected,
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items + result.RowsAffected,
 	})
 }
 
+// @Tags Info
+// @Summary Read Info by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id path int true "Instance id"
+// @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info/{id} [get]
 func (o *InfoController) ReadOne(c *gin.Context) {
 	var id int
 	var info []models.Info
@@ -272,14 +285,26 @@ func (o *InfoController) ReadOne(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     info,
-		"items":      1,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     info,
+		Items:      1,
+		TotalItems: items,
 	})
 }
 
+// @Tags Info
+// @Summary Read All Info
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id query int false "Instance :id"
+// @Param created_at query string false "CreatedAt date"
+// @Param countries query string false "Countries: 'UK,US'"
+// @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info [get]
 func (o *InfoController) ReadAll(c *gin.Context) {
 	var info []models.Info
 	ctx := context.Background()
@@ -321,16 +346,27 @@ func (o *InfoController) ReadAll(c *gin.Context) {
 		fmt.Println("Something wrong with Caching!!!")
 	}
 
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     info,
-		"page":       page,
-		"limit":      limit,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     info,
+		Page:       page,
+		Limit:      limit,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags Info
+// @Summary Update Info by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id path int true "Instance id"
+// @Param model body models.ReqInfo true "Info Data"
+// @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info/{id} [put]
 func (o *InfoController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqInfo
@@ -361,14 +397,27 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 	}
 
 	go db.Redis.Del(ctx, "Info:Sum")
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags Info
+// @Summary Update Info by Query
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id query int false "Instance :id"
+// @Param created_at query string false "CreatedAt date"
+// @Param countries query string false "Countries: 'UK,US'"
+// @Param model body models.ReqInfo true "Info Data"
+// @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info [put]
 func (o *InfoController) UpdateAll(c *gin.Context) {
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {
@@ -402,14 +451,24 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 	}
 
 	go db.Redis.Del(ctx, "Info:Sum")
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     model,
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags Info
+// @Summary Delete Info by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id path int true "Instance id"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info/{id} [delete]
 func (o *InfoController) DeleteOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
@@ -443,14 +502,26 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 
 	go db.Redis.Decr(ctx, "nInfo")
 	go db.Redis.Del(ctx, "Info:Sum")
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     []string{},
-		"items":      result.RowsAffected,
-		"totalItems": items,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items,
 	})
 }
 
+// @Tags Info
+// @Summary Delete Info by Query
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param id query int false "Instance :id"
+// @Param created_at query string false "CreatedAt date"
+// @Param countries query string false "Countries: 'UK,US'"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /info [delete]
 func (o *InfoController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
@@ -481,10 +552,10 @@ func (o *InfoController) DeleteAll(c *gin.Context) {
 
 	go db.Redis.Del(ctx, "Info:Sum")
 	go helper.RedisSub(&ctx, "nInfo", result.RowsAffected)
-	helper.ResHandler(c, http.StatusOK, &gin.H{
-		"status":     "OK",
-		"result":     []string{},
-		"items":      result.RowsAffected,
-		"totalItems": items - result.RowsAffected,
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items - result.RowsAffected,
 	})
 }
