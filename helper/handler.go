@@ -22,4 +22,5 @@ func ErrHandler(c *gin.Context, stat int, message string) {
 		Message: message,
 		Result:  []string{},
 	})
+	c.Abort()
 }
