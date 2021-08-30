@@ -36,6 +36,16 @@ definitions:
         example: 4
         type: integer
     type: object
+  models.Login:
+    properties:
+      pass:
+        type: string
+      user:
+        type: string
+    required:
+    - pass
+    - user
+    type: object
   models.Ping:
     properties:
       message:
@@ -98,6 +108,13 @@ definitions:
       totalItems:
         example: 20
         type: integer
+    type: object
+  models.Tokens:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
     type: object
   models.World:
     properties:
@@ -559,6 +576,38 @@ paths:
       summary: Get Info Sum
       tags:
       - Info
+  /login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Login info
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tokens'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Login
   /ping:
     get:
       consumes:
@@ -571,6 +620,23 @@ paths:
           schema:
             $ref: '#/definitions/models.Ping'
       summary: Ping/Pong
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Tokens'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Refresh
   /world:
     delete:
       consumes:
