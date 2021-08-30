@@ -11,9 +11,7 @@ func ValidateStr(str1 string, str2 string) (equal bool) {
 
 	equal = true
 	for i := 0; i < max; i++ {
-		if i > len1 || i > len2 {
-			equal = false
-		} else if str1[i] != str2[i] {
+		if i >= len1 || i >= len2 || str1[i] != str2[i] {
 			equal = false
 		}
 	}
