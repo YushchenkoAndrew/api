@@ -22,6 +22,14 @@ type EnvType struct {
 	RedisPort string `mapstructure:"REDIS_PORT"`
 	RedisPass string `mapstructure:"REDIS_PASS"`
 
+	AccessSecret  string `mapstructure:"ACCESS_SECRET"`
+	RefreshSecret string `mapstructure:"REFRESH_SECRET"`
+
+	ID     string `mapstructure:"ID"`
+	User   string `mapstructure:"USER"`
+	Pass   string `mapstructure:"PASS"`
+	Pepper string `mapstructure:"PEPPER"`
+
 	LiveTime int64 `mapstructure:"LIVE_TIME"`
 	Items    int   `mapstructure:"ITEMS"`
 	Limit    int   `mapstructure:"LIMIT"`
@@ -34,15 +42,11 @@ func LoadEnv(path string) {
 	viper.SetConfigFile(".env")
 
 	viper.AutomaticEnv()
-	err := viper.ReadInConfig()
-	CheckOnErr(&err, "Failed on reading .env file")
+	if err := viper.ReadInConfig(); err != nil {
+		panic("Failed on reading .env file")
+	}
 
-	err = viper.Unmarshal(&ENV)
-	CheckOnErr(&err, "Failed on reading .env file")
-}
-
-func CheckOnErr(err *error, msg string) {
-	if *err != nil {
-		panic(msg)
+	if err := viper.Unmarshal(&ENV); err != nil {
+		panic("Failed on reading .env file")
 	}
 }

@@ -2,17 +2,19 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Info(rg *gin.RouterGroup) {
 	route := rg.Group("/info")
+	auth := rg.Group("/info", middleware.Auth())
 	cInfo := c.InfoController{}
 
-	route.POST("", cInfo.Create)
-	route.POST("/list", cInfo.CreateAll)
-	route.POST("/:date", cInfo.CreateOne)
+	auth.POST("", cInfo.Create)
+	auth.POST("/list", cInfo.CreateAll)
+	auth.POST("/:date", cInfo.CreateOne)
 
 	route.GET("", cInfo.ReadAll)
 	route.GET("/:id", cInfo.ReadOne)
