@@ -25,10 +25,10 @@ type EnvType struct {
 	AccessSecret  string `mapstructure:"ACCESS_SECRET"`
 	RefreshSecret string `mapstructure:"REFRESH_SECRET"`
 
-	ID     string `mapstructure:"ID"`
-	User   string `mapstructure:"USER"`
-	Pass   string `mapstructure:"PASS"`
-	Pepper string `mapstructure:"PEPPER"`
+	ID     string `mapstructure:"API_ID"`
+	User   string `mapstructure:"API_USER"`
+	Pass   string `mapstructure:"API_PASS"`
+	Pepper string `mapstructure:"API_PEPPER"`
 
 	LiveTime int64 `mapstructure:"LIVE_TIME"`
 	Items    int   `mapstructure:"ITEMS"`
