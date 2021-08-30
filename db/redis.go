@@ -17,6 +17,11 @@ func ConnectToRedis() {
 		Addr:     config.ENV.RedisHost + ":" + config.ENV.RedisPort,
 		Password: config.ENV.RedisPass,
 	})
+
+	ctx := context.Background()
+	if _, err := Redis.Ping(ctx).Result(); err != nil {
+		panic("Failed on Redis connection")
+	}
 }
 
 func RedisInitDefault() {

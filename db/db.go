@@ -18,7 +18,10 @@ func ConnectToDB() {
 			" password="+config.ENV.DBPass+
 			" port="+config.ENV.DBPort+
 			" dbname="+config.ENV.DBName), &gorm.Config{})
-	config.CheckOnErr(&err, "Failed on db connection")
+
+	if err != nil {
+		panic("Failed on db connection")
+	}
 }
 
 func MigrateTables(bForce bool) {

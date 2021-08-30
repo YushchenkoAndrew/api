@@ -1,21 +1,25 @@
 package helper
 
-import "github.com/gin-gonic/gin"
+import (
+	"api/models"
 
-func ResHandler(c *gin.Context, stat int, data *gin.H) {
+	"github.com/gin-gonic/gin"
+)
+
+func ResHandler(c *gin.Context, stat int, data interface{}) {
 	switch c.GetHeader("Accept") {
 	case "application/xml":
-		c.XML(stat, *data)
+		c.XML(stat, data)
 
 	default:
-		c.JSON(stat, *data)
+		c.JSON(stat, data)
 	}
 }
 
 func ErrHandler(c *gin.Context, stat int, message string) {
-	ResHandler(c, stat, &gin.H{
-		"status":  "ERR",
-		"result":  []string{},
-		"message": message,
+	ResHandler(c, stat, models.Error{
+		Status:  "ERR",
+		Message: message,
+		Result:  []string{},
 	})
 }
