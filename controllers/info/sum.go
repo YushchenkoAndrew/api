@@ -20,6 +20,7 @@ type SumController struct{}
 // @Produce application/json
 // @Produce application/xml
 // @Success 200 {object} models.Success{result=[]models.StatInfo}
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/sum [get]
 func (o *SumController) ReadAll(c *gin.Context) {

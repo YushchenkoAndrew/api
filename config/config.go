@@ -33,6 +33,9 @@ type EnvType struct {
 	LiveTime int64 `mapstructure:"LIVE_TIME"`
 	Items    int   `mapstructure:"ITEMS"`
 	Limit    int   `mapstructure:"LIMIT"`
+
+	RateLimit int `mapstructure:"RATE_LIMIT"`
+	RateTime  int `mapstructure:"RATE_TIME"`
 }
 
 var ENV EnvType

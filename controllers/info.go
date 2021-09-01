@@ -74,9 +74,13 @@ func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param model body models.ReqInfo true "Info Data"
 // @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [post]
 func (o *InfoController) Create(c *gin.Context) {
@@ -118,10 +122,14 @@ func (o *InfoController) Create(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param date path string true "Created at instance"
 // @Param model body models.ReqInfo true "Info Data"
 // @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{date} [post]
 func (o *InfoController) CreateOne(c *gin.Context) {
@@ -192,9 +200,13 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param model body []models.ReqInfo true "List of Info Data"
 // @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/list [post]
 func (o *InfoController) CreateAll(c *gin.Context) {
@@ -246,6 +258,7 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 // @Produce application/xml
 // @Param id path int true "Instance id"
 // @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 429 {object} models.Error
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{id} [get]
@@ -302,6 +315,7 @@ func (o *InfoController) ReadOne(c *gin.Context) {
 // @Param created_at query string false "CreatedAt date"
 // @Param countries query string false "Countries: 'UK,US'"
 // @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 429 {object} models.Error
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [get]
@@ -361,10 +375,14 @@ func (o *InfoController) ReadAll(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id path int true "Instance id"
 // @Param model body models.ReqInfo true "Info Data"
 // @Success 200 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{id} [put]
 func (o *InfoController) UpdateOne(c *gin.Context) {
@@ -410,12 +428,16 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id query int false "Instance :id"
 // @Param created_at query string false "CreatedAt date"
 // @Param countries query string false "Countries: 'UK,US'"
 // @Param model body models.ReqInfo true "Info Data"
 // @Success 200 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [put]
 func (o *InfoController) UpdateAll(c *gin.Context) {
@@ -464,9 +486,13 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id path int true "Instance id"
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{id} [delete]
 func (o *InfoController) DeleteOne(c *gin.Context) {
@@ -515,11 +541,15 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id query int false "Instance :id"
 // @Param created_at query string false "CreatedAt date"
 // @Param countries query string false "Countries: 'UK,US'"
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [delete]
 func (o *InfoController) DeleteAll(c *gin.Context) {

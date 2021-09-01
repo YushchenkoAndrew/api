@@ -24,6 +24,7 @@ type RangeController struct{}
 // @Param orderBy query string false "Column which final result will be sorted by"
 // @Param desc query int false "Sort by direction"
 // @Success 200 {object} models.Success{result=[]models.Info}
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/range [get]
 func (*RangeController) Read(c *gin.Context) {

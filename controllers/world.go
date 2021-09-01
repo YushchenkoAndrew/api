@@ -57,9 +57,13 @@ func (*WorldController) parseBody(body *models.ReqWorld, model *models.World) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param model body models.ReqWorld true "World Data"
 // @Success 201 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [post]
 func (o *WorldController) CreateOne(c *gin.Context) {
@@ -100,9 +104,13 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param model body []models.ReqWorld true "List of World Data"
 // @Success 201 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/list [post]
 func (o *WorldController) CreateAll(c *gin.Context) {
@@ -154,6 +162,7 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 // @Param id path int true "Instance id"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/{id} [get]
 func (*WorldController) ReadOne(c *gin.Context) {
@@ -210,6 +219,7 @@ func (*WorldController) ReadOne(c *gin.Context) {
 // @Param country query string false "Country: 'UK'"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [get]
 func (o *WorldController) ReadAll(c *gin.Context) {
@@ -277,10 +287,14 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id path int true "Instance id"
 // @Param model body models.ReqWorld true "World Data"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/{id} [put]
 func (o *WorldController) UpdateOne(c *gin.Context) {
@@ -325,12 +339,16 @@ func (o *WorldController) UpdateOne(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id query int false "Instance :id"
 // @Param updated_at query string false "UpdatedAt date"
 // @Param country query string false "Country: 'UK'"
 // @Param model body models.ReqWorld true "World Data"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [put]
 func (o *WorldController) UpdateAll(c *gin.Context) {
@@ -378,9 +396,13 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id path int true "Instance id"
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/{id} [delete]
 func (*WorldController) DeleteOne(c *gin.Context) {
@@ -428,11 +450,15 @@ func (*WorldController) DeleteOne(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param id query int false "Instance :id"
 // @Param updated_at query string false "UpdatedAt date"
 // @Param country query string false "Country: 'UK'"
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [delete]
 func (o *WorldController) DeleteAll(c *gin.Context) {

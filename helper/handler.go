@@ -14,6 +14,7 @@ func ResHandler(c *gin.Context, stat int, data interface{}) {
 	default:
 		c.JSON(stat, data)
 	}
+	c.Abort()
 }
 
 func ErrHandler(c *gin.Context, stat int, message string) {
@@ -22,5 +23,4 @@ func ErrHandler(c *gin.Context, stat int, message string) {
 		Message: message,
 		Result:  []string{},
 	})
-	c.Abort()
 }
