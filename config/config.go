@@ -9,6 +9,7 @@ type EnvType struct {
 	Port     string `mapstructure:"PORT"`
 	BasePath string `mapstructure:"BASE_PATH"`
 
+	// DataBase
 	DBType string `mapstructure:"DB_TYPE"`
 	DBName string `mapstructure:"DB_NAME"`
 	DBHost string `mapstructure:"DB_HOST"`
@@ -16,24 +17,28 @@ type EnvType struct {
 	DBUser string `mapstructure:"DB_USER"`
 	DBPass string `mapstructure:"DB_PASS"`
 
-	ForceMigrate bool `mapstructure:"FORCE_MIGRATE"`
-
+	// Redis
 	RedisHost string `mapstructure:"REDIS_HOST"`
 	RedisPort string `mapstructure:"REDIS_PORT"`
 	RedisPass string `mapstructure:"REDIS_PASS"`
 
+	// JWT
 	AccessSecret  string `mapstructure:"ACCESS_SECRET"`
 	RefreshSecret string `mapstructure:"REFRESH_SECRET"`
 
+	// Root User Login + Pass & Pepper
 	ID     string `mapstructure:"API_ID"`
 	User   string `mapstructure:"API_USER"`
 	Pass   string `mapstructure:"API_PASS"`
 	Pepper string `mapstructure:"API_PEPPER"`
 
-	LiveTime int64 `mapstructure:"LIVE_TIME"`
-	Items    int   `mapstructure:"ITEMS"`
-	Limit    int   `mapstructure:"LIMIT"`
+	// Pagination setting
+	ForceMigrate bool  `mapstructure:"FORCE_MIGRATE"`
+	LiveTime     int64 `mapstructure:"LIVE_TIME"`
+	Items        int   `mapstructure:"ITEMS"`
+	Limit        int   `mapstructure:"LIMIT"`
 
+	// Rate Info
 	RateLimit int `mapstructure:"RATE_LIMIT"`
 	RateTime  int `mapstructure:"RATE_TIME"`
 }
