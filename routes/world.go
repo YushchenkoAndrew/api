@@ -2,23 +2,25 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func World(rg *gin.RouterGroup) {
 	route := rg.Group("/world")
+	auth := rg.Group("/world", middleware.Auth())
 	cWorld := c.WorldController{}
 
-	route.POST("", cWorld.CreateOne)
-	route.POST("/list", cWorld.CreateAll)
+	auth.POST("", cWorld.CreateOne)
+	auth.POST("/list", cWorld.CreateAll)
 
 	route.GET("/:id", cWorld.ReadOne)
 	route.GET("", cWorld.ReadAll)
 
-	route.PUT("/:id", cWorld.UpdateOne)
-	route.PUT("", cWorld.UpdateAll)
+	auth.PUT("/:id", cWorld.UpdateOne)
+	auth.PUT("", cWorld.UpdateAll)
 
-	route.DELETE("/:id", cWorld.DeleteOne)
-	route.DELETE("", cWorld.DeleteAll)
+	auth.DELETE("/:id", cWorld.DeleteOne)
+	auth.DELETE("", cWorld.DeleteAll)
 }

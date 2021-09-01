@@ -80,12 +80,12 @@ func Auth() gin.HandlerFunc {
 		if ok && token.Valid {
 			var ok bool
 			if accessUUID, ok = claims["access_uuid"].(string); !ok {
-				helper.ErrHandler(c, http.StatusUnauthorized, "Invalid token inforamation")
+				helper.ErrHandler(c, http.StatusUnprocessableEntity, "Invalid token inforamation")
 				return
 			}
 
 			if userUUID, ok = claims["user_id"].(string); !ok {
-				helper.ErrHandler(c, http.StatusUnauthorized, "Invalid token inforamation")
+				helper.ErrHandler(c, http.StatusUnprocessableEntity, "Invalid token inforamation")
 				return
 			}
 		}

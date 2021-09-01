@@ -13,6 +13,7 @@ func Index(rg *gin.RouterGroup) {
 
 	rg.GET("/ping", cIndex.Ping)
 	rg.POST("/login", cIndex.Login)
+	rg.POST("/refresh", cIndex.Refresh)
 
 	rg.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

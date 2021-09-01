@@ -19,9 +19,9 @@ func Info(rg *gin.RouterGroup) {
 	route.GET("", cInfo.ReadAll)
 	route.GET("/:id", cInfo.ReadOne)
 
-	route.PUT("", cInfo.UpdateAll)
-	route.PUT("/:id", cInfo.UpdateOne)
+	auth.PUT("", cInfo.UpdateAll)
+	auth.PUT("/:id", cInfo.UpdateOne)
 
-	route.DELETE("", cInfo.DeleteAll)
-	route.DELETE("/:id", cInfo.DeleteOne)
+	auth.DELETE("", cInfo.DeleteAll)
+	auth.DELETE("/:id", cInfo.DeleteOne)
 }
