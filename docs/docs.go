@@ -1886,6 +1886,10 @@ var doc = `{
                 },
                 "refresh_token": {
                     "type": "string"
+                },
+                "stat": {
+                    "type": "string",
+                    "example": "OK"
                 }
             }
         },

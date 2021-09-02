@@ -115,6 +115,9 @@ definitions:
         type: string
       refresh_token:
         type: string
+      stat:
+        example: OK
+        type: string
     required:
     - refresh_token
     type: object
