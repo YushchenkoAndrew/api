@@ -99,6 +99,8 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 	})
 }
 
+// TODO: Add Method to Create/Update by date, similar to info/{date}
+
 // @Tags World
 // @Summary Create World from list of objects
 // @Accept json
