@@ -1241,7 +1241,7 @@ var doc = `{
                 "tags": [
                     "World"
                 ],
-                "summary": "Create one instace of World",
+                "summary": "Create/Update World Data by Country",
                 "parameters": [
                     {
                         "description": "World Data",
@@ -1416,7 +1416,7 @@ var doc = `{
                 "tags": [
                     "World"
                 ],
-                "summary": "Create World from list of objects",
+                "summary": "Create/Update World from list of objects",
                 "parameters": [
                     {
                         "description": "List of World Data",

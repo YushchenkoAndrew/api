@@ -53,7 +53,7 @@ func (*WorldController) parseBody(body *models.ReqWorld, model *models.World) {
 }
 
 // @Tags World
-// @Summary Create one instace of World
+// @Summary Create/Update World Data by Country
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
@@ -74,8 +74,18 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 		return
 	}
 
+	var result *gorm.DB
+	if result = db.DB.Where("country = ?", body.Country).Find(&model); result.RowsAffected == 0 {
+		model = make([]models.World, 1)
+	}
+
 	o.parseBody(&body, &model[0])
-	result := db.DB.Create(&model)
+	if result.RowsAffected == 0 {
+		result = db.DB.Create(&model)
+	} else {
+		result = db.DB.Where("country = ?", body.Country).Updates(&model[0])
+	}
+
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		return
@@ -99,10 +109,8 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 	})
 }
 
-// TODO: Add Method to Create/Update by date, similar to info/{date}
-
 // @Tags World
-// @Summary Create World from list of objects
+// @Summary Create/Update World from list of objects
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
@@ -117,23 +125,46 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 // @Router /world/list [post]
 func (o *WorldController) CreateAll(c *gin.Context) {
 	var body []models.ReqWorld
-	if err := c.ShouldBind(&body); err != nil {
+	if err := c.ShouldBind(&body); err != nil || len(body) == 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
 	}
 
-	var model = make([]models.World, len(body))
+	var model []models.World
+	var countries = []string{}
 	for i := 0; i < len(body); i++ {
 		if body[i].Country == "" {
 			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 			return
 		}
-
-		o.parseBody(&body[i], &model[i])
+		countries = append(countries, body[i].Country)
 	}
 
-	result := db.DB.Create(&model)
-	if result.Error != nil {
+	var result *gorm.DB
+	result = db.DB.Where("country IN ?", countries).Find(&model)
+	var modelToCreate = make([]models.World, len(body)-int(result.RowsAffected))
+
+	// Init hash for simplify intersection detection
+	var hash = map[string]bool{}
+	for i := 0; i < int(result.RowsAffected); i++ {
+		hash[model[i].Country] = true
+	}
+
+	var j = 0
+	for i := 0; i < len(body); i++ {
+		var m models.World
+		o.parseBody(&body[i], &m)
+
+		if _, ok := hash[body[i].Country]; !ok {
+			modelToCreate[j] = m
+			j++
+		} else if result = db.DB.Where("country = ?", body[i].Country).Updates(&m); result.Error != nil {
+			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong2")
+			return
+		}
+	}
+
+	if result = db.DB.Create(&modelToCreate); result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		return
 	}
@@ -147,7 +178,7 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 	}
 
 	// Make an update without stoping the response handler
-	go helper.RedisAdd(&ctx, "nWorld", result.RowsAffected)
+	go helper.RedisAdd(&ctx, "nWorld", int64(len(body)))
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
 		Result:     model,

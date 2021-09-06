@@ -930,7 +930,7 @@ paths:
             $ref: '#/definitions/models.Error'
       security:
       - BearerAuth: []
-      summary: Create one instace of World
+      summary: Create/Update World Data by Country
       tags:
       - World
     put:
@@ -1189,7 +1189,7 @@ paths:
             $ref: '#/definitions/models.Error'
       security:
       - BearerAuth: []
-      summary: Create World from list of objects
+      summary: Create/Update World from list of objects
       tags:
       - World
 securityDefinitions:
