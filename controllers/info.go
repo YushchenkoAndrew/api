@@ -154,8 +154,7 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
 		json.Unmarshal([]byte(data), &model)
 		result.RowsAffected = int64(len(model))
-	} else {
-		result = db.DB.Where("created_at = ?", date).Find(&model)
+	} else if result = db.DB.Where("created_at = ?", date).Find(&model); result.RowsAffected == 0 {
 		model = make([]models.Info, 1)
 	}
 
