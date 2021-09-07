@@ -158,15 +158,19 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 		if _, ok := hash[body[i].Country]; !ok {
 			modelToCreate[j] = m
 			j++
-		} else if result = db.DB.Where("country = ?", body[i].Country).Updates(&m); result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong2")
-			return
+		} else if body[i].Visitors == nil || *body[i].Visitors != m.Visitors { // Check if data is changed
+			if result = db.DB.Where("country = ?", body[i].Country).Updates(&m); result.Error != nil {
+				helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong2")
+				return
+			}
 		}
 	}
 
-	if result = db.DB.Create(&modelToCreate); result.Error != nil {
-		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		return
+	if len(modelToCreate) != 0 {
+		if result = db.DB.Create(&modelToCreate); result.Error != nil {
+			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			return
+		}
 	}
 
 	ctx := context.Background()
