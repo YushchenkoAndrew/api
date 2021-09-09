@@ -28,6 +28,7 @@ type IndexController struct{}
 // @Router /ping [get]
 func (*IndexController) Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Ping{
+		Stat:    "OK",
 		Message: "pong",
 	})
 }

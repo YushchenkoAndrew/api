@@ -1794,6 +1794,10 @@ var doc = `{
                 "message": {
                     "type": "string",
                     "example": "pong"
+                },
+                "stat": {
+                    "type": "string",
+                    "example": "OK"
                 }
             }
         },

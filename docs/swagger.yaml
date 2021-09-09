@@ -51,6 +51,9 @@ definitions:
       message:
         example: pong
         type: string
+      stat:
+        example: OK
+        type: string
     type: object
   models.ReqInfo:
     properties:
