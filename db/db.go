@@ -2,6 +2,7 @@ package db
 
 import (
 	"api/config"
+	"api/logs"
 	models "api/models"
 
 	"gorm.io/driver/postgres"
@@ -20,6 +21,13 @@ func ConnectToDB() {
 			" dbname="+config.ENV.DBName), &gorm.Config{})
 
 	if err != nil {
+		logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/db/db.go",
+			Message: "Bruhhh, did you even start the Postgres ???",
+			Desc:    err.Error(),
+		})
 		panic("Failed on db connection")
 	}
 }

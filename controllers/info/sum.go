@@ -3,10 +3,10 @@ package info
 import (
 	"api/db"
 	"api/helper"
+	"api/logs"
 	"api/models"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +36,14 @@ func (o *SumController) ReadAll(c *gin.Context) {
 
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				Url:     "/api/world",
+				File:    "/controllers/info/sum.go",
+				Message: "It's not an error Karl; It's a bug!!",
+				Desc:    result.Error,
+			})
 			return
 		}
 
@@ -49,7 +57,13 @@ func (o *SumController) ReadAll(c *gin.Context) {
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		fmt.Println("Something wrong with Caching!!!")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/info/sum.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{

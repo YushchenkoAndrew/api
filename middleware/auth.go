@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/logs"
 	"api/models"
 	"context"
 	"fmt"
@@ -53,6 +54,13 @@ func Auth() gin.HandlerFunc {
 
 		if len(bearToken) != 2 {
 			helper.ErrHandler(c, http.StatusUnauthorized, "Invalid token inforamation")
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				Url:     "/api/refresh",
+				File:    "/controllers/index.go",
+				Message: "It's mine first time so please be gentle",
+			})
 			return
 		}
 
@@ -70,6 +78,13 @@ func Auth() gin.HandlerFunc {
 
 		if err != nil {
 			helper.ErrHandler(c, http.StatusUnauthorized, err.Error())
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				Url:     "/api/refresh",
+				File:    "/controllers/index.go",
+				Message: "It's mine first time so please be gentle",
+			})
 			return
 		}
 

@@ -4,9 +4,9 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/logs"
 	"api/models"
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +69,13 @@ func (*RangeController) Read(c *gin.Context) {
 	if err != nil || result == nil {
 		items = -1
 		go db.RedisInitDefault()
-		fmt.Println("Something wrong with Caching!!!")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/info/range.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"api/config"
+	"api/logs"
 	"api/models"
 
 	"github.com/go-redis/redis/v8"
@@ -20,6 +21,13 @@ func ConnectToRedis() {
 
 	ctx := context.Background()
 	if _, err := Redis.Ping(ctx).Result(); err != nil {
+		logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/db/redis.go",
+			Message: "Bruhhh, did you even start the Redis ???",
+			Desc:    err.Error(),
+		})
 		panic("Failed on Redis connection")
 	}
 }

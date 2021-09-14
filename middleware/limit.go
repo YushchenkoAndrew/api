@@ -4,6 +4,8 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/logs"
+	"api/models"
 	"context"
 	"net/http"
 	"time"
@@ -25,6 +27,13 @@ func Limit() gin.HandlerFunc {
 		go db.Redis.Incr(ctx, ip)
 		if rate >= config.ENV.RateLimit {
 			helper.ErrHandler(c, http.StatusTooManyRequests, "Toggled Reqest rate limiter")
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "OK",
+				Name:    "API",
+				Url:     "/api/refresh",
+				File:    "/middleware/limit.go",
+				Message: "Jeez man calm down, you've had inaff of traffic, I'm blocking you; ip=" + ip,
+			})
 		}
 	}
 }

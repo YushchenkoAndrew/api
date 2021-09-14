@@ -41,6 +41,9 @@ type EnvType struct {
 	// Rate Info
 	RateLimit int `mapstructure:"RATE_LIMIT"`
 	RateTime  int `mapstructure:"RATE_TIME"`
+
+	BotUrl string `mapstructure:"BOT_URL"`
+	BotKey string `mapstructure:"BOT_KEY"`
 }
 
 var ENV EnvType
