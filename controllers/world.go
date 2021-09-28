@@ -304,6 +304,8 @@ func (*WorldController) ReadOne(c *gin.Context) {
 // @Param id query int false "Instance :id"
 // @Param updated_at query string false "UpdatedAt date"
 // @Param country query string false "Country: 'UK'"
+// @Param page query int false "Page: '0'"
+// @Param limit query int false "Limit: '1'"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
 // @failure 429 {object} models.Error

@@ -369,6 +369,8 @@ func (o *InfoController) ReadOne(c *gin.Context) {
 // @Param id query int false "Instance :id"
 // @Param created_at query string false "CreatedAt date"
 // @Param countries query string false "Countries: 'UK,US'"
+// @Param page query int false "Page: '0'"
+// @Param limit query int false "Limit: '1'"
 // @Success 200 {object} models.Success{result=[]models.Info}
 // @failure 429 {object} models.Error
 // @failure 400 {object} models.Error

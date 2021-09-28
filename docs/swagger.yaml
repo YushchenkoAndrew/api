@@ -13,6 +13,26 @@ definitions:
         example: ERR
         type: string
     type: object
+  models.File:
+    properties:
+      ID:
+        type: integer
+      Name:
+        example: index.js
+        type: string
+      ProjectID:
+        example: 1
+        type: integer
+      Role:
+        example: src
+        type: string
+      Type:
+        example: js
+        type: string
+      UpdatedAt:
+        example: "2021-08-27T16:17:53.119571+03:00"
+        type: string
+    type: object
   models.Info:
     properties:
       Clicks:
@@ -53,6 +73,16 @@ definitions:
         type: string
       stat:
         example: OK
+        type: string
+    type: object
+  models.ReqFile:
+    properties:
+      Name:
+        description: ID        uint32    `json:"id" xml:"id"`
+        type: string
+      Role:
+        type: string
+      Type:
         type: string
     type: object
   models.ReqInfo:
@@ -151,6 +181,281 @@ info:
   title: Gin API
   version: "1.0"
 paths:
+  /file:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'Type: ''1'''
+        in: query
+        name: id
+        type: integer
+      - description: 'Type: ''js,html,img'''
+        in: query
+        name: type
+        type: string
+      - description: 'Role: ''src,assets,styles'''
+        in: query
+        name: role
+        type: string
+      - description: 'ProjectID: ''1'''
+        in: query
+        name: project_id
+        type: string
+      - description: 'Page: ''0'''
+        in: query
+        name: page
+        type: integer
+      - description: 'Limit: ''1'''
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.File'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Read File by Query
+      tags:
+      - File
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance :id
+        in: query
+        name: id
+        type: integer
+      - description: 'Type: ''js,html,img'''
+        in: query
+        name: type
+        type: string
+      - description: 'Role: ''src,assets,styles'''
+        in: query
+        name: role
+        type: string
+      - description: 'ProjectID: ''1'''
+        in: query
+        name: project_id
+        type: string
+      - description: File Data
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReqFile'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.File'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Update File by Query
+      tags:
+      - File
+  /file/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.File'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Read File by :id
+      tags:
+      - File
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project primaray id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File Data
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReqFile'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.File'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Create file by project id
+      tags:
+      - File
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File Data
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReqFile'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.File'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Update File by :id
+      tags:
+      - File
   /info:
     delete:
       consumes:
@@ -224,6 +529,14 @@ paths:
         in: query
         name: countries
         type: string
+      - description: 'Page: ''0'''
+        in: query
+        name: page
+        type: integer
+      - description: 'Limit: ''1'''
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       - application/xml
@@ -856,6 +1169,14 @@ paths:
         in: query
         name: country
         type: string
+      - description: 'Page: ''0'''
+        in: query
+        name: page
+        type: integer
+      - description: 'Limit: ''1'''
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       - application/xml
