@@ -37,11 +37,15 @@ func MigrateTables(bForce bool) {
 		DB.Migrator().DropTable(
 			&models.Info{},
 			&models.World{},
+			&models.Project{},
+			&models.File{},
 		)
 	}
 
 	DB.AutoMigrate(
 		&models.Info{},
 		&models.World{},
+		&models.Project{},
+		&models.File{},
 	)
 }

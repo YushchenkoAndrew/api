@@ -35,6 +35,8 @@ func Init(rg *gin.Engine) {
 	Index(route)
 	Info(route)
 	World(route)
+	Project(route)
+	File(route)
 
 	// Init SubRoutes
 	info.Init(route)

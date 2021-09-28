@@ -35,9 +35,11 @@ func ConnectToRedis() {
 func RedisInitDefault() {
 	var nInfo int64
 	var nWorld int64
+	var nFile int64
 
 	DB.Model(&models.Info{}).Count(&nInfo)
 	DB.Model(&models.World{}).Count(&nWorld)
+	DB.Model(&models.File{}).Count(&nFile)
 
 	// FIXME: ERROR log format
 	ctx := context.Background()
@@ -49,10 +51,5 @@ func RedisInitDefault() {
 
 	SetVar(&ctx, "nInfo", nInfo)
 	SetVar(&ctx, "nWorld", nWorld)
-
-	// // Set Default settings configuration
-	// SetVar(&ctx, "nItems", conf.Items)
-	// SetVar(&ctx, "nLimit", conf.Limit)
-	// SetVar(&ctx, "nLiveTime", conf.LiveTime)
-	// SetVar(&ctx, "nUsersReq", conf.UsersReq)
+	SetVar(&ctx, "nFile", nFile)
 }
