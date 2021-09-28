@@ -52,4 +52,5 @@ func RedisInitDefault() {
 	SetVar(&ctx, "nInfo", nInfo)
 	SetVar(&ctx, "nWorld", nWorld)
 	SetVar(&ctx, "nFile", nFile)
+	SetVar(&ctx, "Mutex", 1)
 }
