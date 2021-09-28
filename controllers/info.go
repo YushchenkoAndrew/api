@@ -486,6 +486,8 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
+	db.Redis.Del(ctx, "Info:"+strconv.Itoa(id))
+
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
@@ -558,6 +560,10 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 
 	var items int64
 	ctx := context.Background()
+	if sKeys == "id" || sKeys == "created_at" {
+		db.Redis.Del(ctx, "Info:"+sKeys)
+	}
+
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
@@ -621,6 +627,8 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
+	db.Redis.Del(ctx, "Info:"+strconv.Itoa(id))
+
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
