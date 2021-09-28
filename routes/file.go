@@ -12,7 +12,7 @@ func File(rg *gin.RouterGroup) {
 	auth := rg.Group("/file", middleware.Auth())
 	cFile := c.FileController{}
 
-	auth.POST("/list", cFile.CreateAll)
+	auth.POST("/list/:id", cFile.CreateAll)
 	auth.POST("/:id", cFile.CreateOne)
 
 	route.GET("/:id", cFile.ReadOne)

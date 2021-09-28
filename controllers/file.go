@@ -93,7 +93,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 	var key = "Project:" + strconv.Itoa(id)
 	if _, err := db.Redis.Get(ctx, key).Result(); err != nil {
 		var project []models.Project
-		if res := db.DB.Where("id = ?", id).Find(project); res.RowsAffected == 0 {
+		if res := db.DB.Where("id = ?", id).Find(&project); res.RowsAffected == 0 {
 			helper.ErrHandler(c, http.StatusBadRequest, "Unknown project id")
 			return
 		} else if str, err := json.Marshal(&project); err == nil {
@@ -134,6 +134,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 		})
 	}
 
+	go db.Redis.Incr(ctx, "nFile")
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -142,8 +143,93 @@ func (o *FileController) CreateOne(c *gin.Context) {
 	})
 }
 
-func (*FileController) CreateAll(c *gin.Context) {
-	// TODO:
+// @Tags File
+// @Summary Create File from list of objects
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id path int true "Project id"
+// @Param model body []models.ReqFile true "List of File Data"
+// @Success 201 {object} models.Success{result=[]models.File}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /file/list/{id} [post]
+func (o *FileController) CreateAll(c *gin.Context) {
+	var err error
+	var id int
+	var body []models.ReqFile
+
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect project id param")
+		return
+	}
+
+	if err = c.ShouldBind(&body); err != nil {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+		return
+	}
+
+	ctx := context.Background()
+	var key = "Project:" + strconv.Itoa(id)
+	if _, err := db.Redis.Get(ctx, key).Result(); err != nil {
+		var project []models.Project
+		if res := db.DB.Where("id = ?", id).Find(&project); res.RowsAffected == 0 {
+			helper.ErrHandler(c, http.StatusBadRequest, "Unknown project id")
+			return
+		} else if str, err := json.Marshal(&project); err == nil {
+			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
+		}
+	}
+
+	var model = make([]models.File, len(body))
+	for i := 0; i < len(body); i++ {
+		if body[i].Name == "" || body[i].Role == "" || body[i].Type == "" {
+			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+			return
+		}
+
+		o.parseBody(&body[i], &model[i])
+		model[i].ProjectID = uint32(id)
+	}
+
+	result := db.DB.Create(&model)
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/file",
+			File:    "/controllers/file.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error.Error(),
+		})
+		return
+	}
+
+	items, err := db.Redis.Get(ctx, "nFile").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/file.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	go helper.RedisAdd(&ctx, "nFile", result.RowsAffected)
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items + result.RowsAffected,
+	})
 }
 
 // @Tags File
@@ -341,6 +427,8 @@ func (o *FileController) UpdateOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
+	db.Redis.Del(ctx, "File:"+strconv.Itoa(id))
+
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
@@ -413,6 +501,10 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 
 	var items int64
 	ctx := context.Background()
+	if sKeys == "id" || sKeys == "project_id" || sKeys == "role" || sKeys == "name" {
+		db.Redis.Del(ctx, "File:"+sKeys)
+	}
+
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
@@ -434,10 +526,145 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 	})
 }
 
+// @Tags File
+// @Summary Delete File by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id path int true "Instance id"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /file/{id} [delete]
 func (*FileController) DeleteOne(c *gin.Context) {
+	var id int
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
+		return
+	}
 
+	result := db.DB.Where("id = ?", id).Delete(&models.File{})
+	if result.RowsAffected != 1 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id param")
+		return
+	}
+
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/file",
+			File:    "/controllers/file.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error,
+		})
+		return
+	}
+
+	ctx := context.Background()
+	db.Redis.Del(ctx, "File:"+strconv.Itoa(id))
+
+	items, err := db.Redis.Get(ctx, "nFile").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/file.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	if items == 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+		return
+	}
+
+	go db.Redis.Decr(ctx, "nFile")
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items,
+	})
 }
 
-func (*FileController) DeleteAll(c *gin.Context) {
+// @Tags File
+// @Summary Delete File by Query
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id query int false "Instance :id"
+// @Param type query string false "Type: 'js,html,img'"
+// @Param role query string false "Role: 'src,assets,styles'"
+// @Param project_id query string false "ProjectID: '1'"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /file [delete]
+func (o *FileController) DeleteAll(c *gin.Context) {
+	var sKeys string
+	var result *gorm.DB
 
+	// FIXME: THIS ROUTE DOESN'T WORK!!!!
+	if result, sKeys = o.filterQuery(c); sKeys == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
+		return
+	}
+
+	result = result.Delete(&models.File{})
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/file",
+			File:    "/controllers/file.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error.Error(),
+		})
+		return
+	}
+
+	ctx := context.Background()
+	if sKeys == "id" || sKeys == "project_id" || sKeys == "role" || sKeys == "name" {
+		db.Redis.Del(ctx, "File:"+sKeys)
+	}
+
+	items, err := db.Redis.Get(ctx, "nFile").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/file.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	if items == 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+		return
+	}
+
+	go helper.RedisSub(&ctx, "nFile", result.RowsAffected)
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items - result.RowsAffected,
+	})
 }
