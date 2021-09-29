@@ -27,7 +27,7 @@ func (*FileController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 		result = result.Where("id = ?", id)
 	}
 
-	if projectId, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && projectId > 0 {
+	if projectId, err := strconv.Atoi(c.DefaultQuery("project_id", "-1")); err == nil && projectId > 0 {
 		sKeys += "project_id"
 		result = result.Where("project_id = ?", projectId)
 	}
@@ -502,7 +502,7 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 	var items int64
 	ctx := context.Background()
 	if sKeys == "id" || sKeys == "project_id" || sKeys == "role" || sKeys == "name" {
-		db.Redis.Del(ctx, "File:"+sKeys)
+		db.Redis.Del(ctx, "File:"+c.DefaultQuery(sKeys, ""))
 	}
 
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
@@ -617,7 +617,6 @@ func (o *FileController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
 
-	// FIXME: THIS ROUTE DOESN'T WORK!!!!
 	if result, sKeys = o.filterQuery(c); sKeys == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
 		return
@@ -639,7 +638,7 @@ func (o *FileController) DeleteAll(c *gin.Context) {
 
 	ctx := context.Background()
 	if sKeys == "id" || sKeys == "project_id" || sKeys == "role" || sKeys == "name" {
-		db.Redis.Del(ctx, "File:"+sKeys)
+		db.Redis.Del(ctx, "File:"+c.DefaultQuery(sKeys, ""))
 	}
 
 	items, err := db.Redis.Get(ctx, "nFile").Int64()

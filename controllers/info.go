@@ -561,7 +561,7 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 	var items int64
 	ctx := context.Background()
 	if sKeys == "id" || sKeys == "created_at" {
-		db.Redis.Del(ctx, "Info:"+sKeys)
+		db.Redis.Del(ctx, "Info:"+c.DefaultQuery(sKeys, ""))
 	}
 
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
@@ -697,6 +697,10 @@ func (o *InfoController) DeleteAll(c *gin.Context) {
 	}
 
 	ctx := context.Background()
+	if sKeys == "id" || sKeys == "created_at" {
+		db.Redis.Del(ctx, "Info:"+c.DefaultQuery(sKeys, ""))
+	}
+
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1

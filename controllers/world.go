@@ -504,7 +504,7 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 	var items int64
 	ctx := context.Background()
 	if sKeys == "id" || sKeys == "updated_at" {
-		db.Redis.Del(ctx, "World:"+sKeys)
+		db.Redis.Del(ctx, "World:"+c.DefaultQuery(sKeys, ""))
 	}
 
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
@@ -638,6 +638,10 @@ func (o *WorldController) DeleteAll(c *gin.Context) {
 	}
 
 	ctx := context.Background()
+	if sKeys == "id" || sKeys == "updated_at" {
+		db.Redis.Del(ctx, "World:"+c.DefaultQuery(sKeys, ""))
+	}
+
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
