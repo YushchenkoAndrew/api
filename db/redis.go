@@ -36,10 +36,12 @@ func RedisInitDefault() {
 	var nInfo int64
 	var nWorld int64
 	var nFile int64
+	var nProject int64
 
 	DB.Model(&models.Info{}).Count(&nInfo)
 	DB.Model(&models.World{}).Count(&nWorld)
 	DB.Model(&models.File{}).Count(&nFile)
+	DB.Model(&models.Project{}).Count(&nProject)
 
 	// FIXME: ERROR log format
 	ctx := context.Background()
@@ -52,5 +54,6 @@ func RedisInitDefault() {
 	SetVar(&ctx, "nInfo", nInfo)
 	SetVar(&ctx, "nWorld", nWorld)
 	SetVar(&ctx, "nFile", nFile)
+	SetVar(&ctx, "nProject", nFile)
 	SetVar(&ctx, "Mutex", 1)
 }
