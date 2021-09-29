@@ -79,9 +79,12 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 		model = make([]models.World, 1)
 	}
 
+	ctx := context.Background()
+
 	o.parseBody(&body, &model[0])
 	if result.RowsAffected == 0 {
 		result = db.DB.Create(&model)
+		db.Redis.Incr(ctx, "nWorld")
 	} else {
 		result = db.DB.Where("country = ?", body.Country).Updates(&model[0])
 	}
@@ -99,9 +102,6 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
-
-	db.Redis.Incr(ctx, "nWorld")
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1

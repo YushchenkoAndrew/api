@@ -176,6 +176,7 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 	o.parseBody(&body, &model[0])
 	if result.RowsAffected == 0 {
 		result = db.DB.Create(&model)
+		db.Redis.Incr(ctx, "nInfo")
 	} else {
 		result = db.DB.Where("created_at = ?", date).Updates(&model[0])
 	}
@@ -198,7 +199,6 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 		go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
 	}
 
-	db.Redis.Incr(ctx, "nInfo")
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
