@@ -31,6 +31,11 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 		result = result.Where("name = ?", name)
 	}
 
+	if dir := c.DefaultQuery("dir", ""); dir != "" {
+		sKeys += "dir"
+		result = result.Where("name = ?", dir)
+	}
+
 	start := c.DefaultQuery("start", "")
 	end := c.DefaultQuery("end", "")
 
@@ -52,20 +57,32 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*ProjectController) parseBody(body *models.ReqProject, model *models.Project) {
+func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Project) bool {
 	model.Name = body.Name
+	model.Dir = body.Dir
 	model.Title = body.Title
 	model.Desc = body.Desc
 
 	if len(body.Files) != 0 {
-		// FIXME:
-		// model.Files = body.Files
+		var fileMap = make(map[string]*models.File)
 
-		model.Files = make([]models.File, 1)
-		model.Files[0].Name = body.Files[0].Name
-		model.Files[0].Role = body.Files[0].Role
-		model.Files[0].Type = body.Files[0].Type
+		model.Files = make([]models.File, len(body.Files))
+		for i := 0; i < len(body.Files); i++ {
+			if ptr, ok := fileMap[body.Files[i].Name]; ok && (*ptr).Role == body.Files[i].Role && (*ptr).Type == body.Files[i].Type {
+				return false
+			}
+
+			o.parseFileBody(&body.Files[i], &model.Files[i])
+			fileMap[model.Files[i].Name] = &model.Files[i]
+		}
 	}
+	return true
+}
+
+func (*ProjectController) parseFileBody(body *models.File, model *models.File) {
+	model.Name = body.Name
+	model.Role = body.Role
+	model.Type = body.Type
 }
 
 // @Tags Project
@@ -84,7 +101,7 @@ func (*ProjectController) parseBody(body *models.ReqProject, model *models.Proje
 // @Router /project [post]
 func (o *ProjectController) CreateOne(c *gin.Context) {
 	var body models.ReqProject
-	if err := c.ShouldBind(&body); err != nil || body.Name == "" {
+	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Dir == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
 		return
 	}
@@ -92,11 +109,12 @@ func (o *ProjectController) CreateOne(c *gin.Context) {
 	var result = db.DB
 	var model = make([]models.Project, 1)
 
-	// TODO: Check on adding same data over and over
+	if !o.parseBody(&body, &model[0]) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Files are repeated")
+		return
+	}
 
-	o.parseBody(&body, &model[0])
 	result = db.DB.Create(&model)
-
 	if result.Error != nil || result.RowsAffected == 0 {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Something unexpected happend")
 		go logs.SendLogs(&models.LogMessage{
@@ -134,8 +152,75 @@ func (o *ProjectController) CreateOne(c *gin.Context) {
 	})
 }
 
-func (*ProjectController) CreateAll(c *gin.Context) {
-	// TODO:
+// @Tags Project
+// @Summary Create Project from list of objects
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param model body []models.ReqProject true "List of Project Data"
+// @Success 201 {object} models.Success{result=[]models.Project}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /project/list/{id} [post]
+func (o *ProjectController) CreateAll(c *gin.Context) {
+	var body []models.ReqProject
+	if err := c.ShouldBind(&body); err != nil {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+		return
+	}
+
+	var model = make([]models.Project, len(body))
+	for i := 0; i < len(body); i++ {
+		if body[i].Name == "" || body[i].Dir == "" {
+			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+			return
+		}
+
+		if !o.parseBody(&body[i], &model[i]) {
+			helper.ErrHandler(c, http.StatusBadRequest, "Files are repeated")
+			return
+		}
+	}
+
+	result := db.DB.Create(&model)
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error.Error(),
+		})
+		return
+	}
+
+	ctx := context.Background()
+	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/project.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	go helper.RedisAdd(&ctx, "nProject", result.RowsAffected)
+	helper.ResHandler(c, http.StatusCreated, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items + result.RowsAffected,
+	})
 }
 
 // @Tags Project
@@ -257,7 +342,7 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 			return
 		}
 
-		if sKeys == "id" || sKeys == "name" || sKeys == "start" || sKeys == "end" {
+		if sKeys == "id" || sKeys == "name" || sKeys == "dir" || sKeys == "start" || sKeys == "end" {
 			// Encode json to str
 			if str, err := json.Marshal(&project); err == nil {
 				go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
@@ -288,8 +373,72 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 	})
 }
 
-func (*ProjectController) UpdateOne(c *gin.Context) {
+// @Tags Project
+// @Summary Update Project by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id path int true "Instance id"
+// @Param model body models.ReqProject true "Project Data"
+// @Success 200 {object} models.Success{result=[]models.Project}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /project/{id} [put]
+func (o *ProjectController) UpdateOne(c *gin.Context) {
+	var id int
+	var body models.ReqProject
+	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) || len(body.Files) != 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+		return
+	}
 
+	var model models.Project
+	o.parseBody(&body, &model)
+	result := db.DB.Where("id = ?", id).Updates(&model)
+	if result.RowsAffected != 1 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id param")
+		return
+	}
+
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error.Error(),
+		})
+		return
+	}
+
+	ctx := context.Background()
+	db.Redis.Del(ctx, "Project:"+strconv.Itoa(id))
+
+	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/project.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
+	})
 }
 
 func (*ProjectController) UpdateAll(c *gin.Context) {
