@@ -56,6 +56,12 @@ func (*FileController) parseBody(body *models.ReqFile, model *models.File) {
 	model.Type = body.Type
 }
 
+func (*FileController) isExist(id int, body *models.ReqFile) bool {
+	var model []models.File
+	res := db.DB.Where("project_id = ? AND name = ? AND role = ? AND type = ?", id, body.Name, body.Role, body.Type).Find(&model)
+	return !(res.RowsAffected == 0)
+}
+
 // @Tags File
 // @Summary Create file by project id
 // @Accept json
@@ -88,8 +94,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 	var model []models.File
 	ctx := context.Background()
 
-	// TODO: Check on adding same data over and over
-
+	// Check if such project is exist
 	var key = "Project:" + strconv.Itoa(id)
 	if _, err := db.Redis.Get(ctx, key).Result(); err != nil {
 		var project []models.Project
@@ -99,6 +104,11 @@ func (o *FileController) CreateOne(c *gin.Context) {
 		} else if str, err := json.Marshal(&project); err == nil {
 			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
 		}
+	}
+
+	if o.isExist(id, &body) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Such file already exist")
+		return
 	}
 
 	model = make([]models.File, 1)
@@ -189,6 +199,11 @@ func (o *FileController) CreateAll(c *gin.Context) {
 	for i := 0; i < len(body); i++ {
 		if body[i].Name == "" || body[i].Role == "" || body[i].Type == "" {
 			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+			return
+		}
+
+		if o.isExist(id, &body[i]) {
+			helper.ErrHandler(c, http.StatusBadRequest, "Such file already exist")
 			return
 		}
 
