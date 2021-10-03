@@ -123,7 +123,7 @@ func (o *ProjectController) CreateOne(c *gin.Context) {
 			Url:     "/api/project",
 			File:    "/controllers/project.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
@@ -195,7 +195,7 @@ func (o *ProjectController) CreateAll(c *gin.Context) {
 			Url:     "/api/project",
 			File:    "/controllers/project.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
@@ -259,7 +259,7 @@ func (*ProjectController) ReadOne(c *gin.Context) {
 				Url:     "/api/project",
 				File:    "/controllers/project.go",
 				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error.Error(),
+				Desc:    result.Error,
 			})
 			return
 		}
@@ -298,8 +298,9 @@ func (*ProjectController) ReadOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Param id query int false "Type: '1'"
-// @Param name query string false "Type: 'CodeRain'"
-// @Param start query string true "CreatedAt date >= start"
+// @Param name query string false "Type: 'Code Rain'"
+// @Param dir query string false "Type: 'CodeRain'"
+// @Param start query string false "CreatedAt date >= start"
 // @Param end query string false "CreatedAt date <= end"
 // @Param page query int false "Page: '0'"
 // @Param limit query int false "Limit: '1'"
@@ -337,7 +338,7 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 				Url:     "/api/project",
 				File:    "/controllers/project.go",
 				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error.Error(),
+				Desc:    result.Error,
 			})
 			return
 		}
@@ -380,7 +381,7 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Instance id"
-// @Param model body models.ReqProject true "Project Data"
+// @Param model body models.ReqProject true "Project without File Data"
 // @Success 200 {object} models.Success{result=[]models.Project}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -396,6 +397,9 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 		return
 	}
 
+	// TODO: Maybe I need to check if new dir is already exits
+	// because right now it can be achieved by getting an error
+	// from db
 	var model models.Project
 	o.parseBody(&body, &model)
 	result := db.DB.Where("id = ?", id).Updates(&model)
@@ -412,7 +416,7 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 			Url:     "/api/project",
 			File:    "/controllers/project.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
@@ -441,14 +445,274 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 	})
 }
 
-func (*ProjectController) UpdateAll(c *gin.Context) {
+// @Tags Project
+// @Summary Update Project by Query
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id query int false "Type: '1'"
+// @Param name query string false "Type: 'Code Rain'"
+// @Param dir query string false "Type: 'CodeRain'"
+// @Param model body models.ReqProject true "Project without File Data"
+// @Success 200 {object} models.Success{result=[]models.File}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /project [put]
+func (o *ProjectController) UpdateAll(c *gin.Context) {
+	var body models.ReqProject
+	if err := c.ShouldBind(&body); err != nil || len(body.Files) != 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
+		return
+	}
 
+	var sKeys string
+	var result *gorm.DB
+	var model models.Project
+
+	// TODO: Maybe I need to check if new dir is already exits
+	// because right now it can be achieved by getting an error
+	// from db
+	o.parseBody(&body, &model)
+	if result, sKeys = o.filterQuery(c); sKeys == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
+		return
+	}
+
+	result = result.Updates(&model)
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error,
+		})
+		return
+	}
+
+	var items int64
+	ctx := context.Background()
+	if sKeys == "id" || sKeys == "name" || sKeys == "dir" {
+		db.Redis.Del(ctx, "Project:"+c.DefaultQuery(sKeys, ""))
+	}
+
+	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/project.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     model,
+		Items:      result.RowsAffected,
+		TotalItems: items,
+	})
 }
 
+// @Tags Project
+// @Summary Delete Project and Files by :id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id path int true "Instance id"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /project/{id} [delete]
 func (*ProjectController) DeleteOne(c *gin.Context) {
+	var id int
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
+		return
+	}
 
+	// Delete in both place Files & Project
+	if result := db.DB.Where("project_id = ?", id).Delete(&models.File{}); result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error,
+		})
+		return
+	}
+
+	result := db.DB.Where("id = ?", id).Delete(&models.Project{})
+	if result.RowsAffected != 1 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id param")
+		return
+	}
+
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error,
+		})
+		return
+	}
+
+	ctx := context.Background()
+	db.Redis.Del(ctx, "Project:"+strconv.Itoa(id))
+
+	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/project.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	if items == 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+		return
+	}
+
+	go db.Redis.Decr(ctx, "nProject")
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items,
+	})
 }
 
-func (*ProjectController) DeleteAll(c *gin.Context) {
+// @Tags Project
+// @Summary Delete Project by Query and Files with the same project_id
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Security BearerAuth
+// @Param id query int false "Type: '1'"
+// @Param name query string false "Type: 'Code Rain'"
+// @Param dir query string false "Type: 'CodeRain'"
+// @Success 200 {object} models.Success{result=[]string{}}
+// @failure 400 {object} models.Error
+// @failure 401 {object} models.Error
+// @failure 422 {object} models.Error
+// @failure 429 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /project [delete]
+func (o *ProjectController) DeleteAll(c *gin.Context) {
+	var sKeys string
+	var result *gorm.DB
+	var project []models.Project
 
+	if result, sKeys = o.filterQuery(c); sKeys == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
+		return
+	}
+
+	ctx := context.Background()
+	key := "Project:" + c.DefaultQuery(sKeys, "-1")
+	if sKeys == "id" || sKeys == "name" || sKeys == "start" || sKeys == "end" {
+		// Check if cache have requested data
+		if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
+			json.Unmarshal([]byte(data), &project)
+			go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
+		}
+	}
+
+	if len(project) == 0 {
+		if result := result.Find(&project); result.Error != nil || len(project) == 0 {
+			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				Url:     "/api/project",
+				File:    "/controllers/project.go",
+				Message: "It's not an error Karl; It's a bug!!",
+				Desc:    result.Error,
+			})
+			return
+		}
+	}
+
+	// Delete in both place Files & Project
+	if result := db.DB.Where("project_id = ?", project[0].ID).Delete(&models.File{}); result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error,
+		})
+		return
+	}
+
+	result = result.Delete(&models.Project{})
+	if result.Error != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			Url:     "/api/project",
+			File:    "/controllers/project.go",
+			Message: "It's not an error Karl; It's a bug!!",
+			Desc:    result.Error,
+		})
+		return
+	}
+
+	if sKeys == "id" || sKeys == "name" || sKeys == "dir" {
+		db.Redis.Del(ctx, "Project:"+c.DefaultQuery(sKeys, ""))
+	}
+
+	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	if err != nil {
+		items = -1
+		go db.RedisInitDefault()
+		go logs.SendLogs(&models.LogMessage{
+			Stat:    "ERR",
+			Name:    "API",
+			File:    "/controllers/project.go",
+			Message: "Ohh nooo Cache is broken; Anyway...",
+			Desc:    err.Error(),
+		})
+	}
+
+	if items == 0 {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+		return
+	}
+
+	go helper.RedisSub(&ctx, "nProject", result.RowsAffected)
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status:     "OK",
+		Result:     []string{},
+		Items:      result.RowsAffected,
+		TotalItems: items - result.RowsAffected,
+	})
 }

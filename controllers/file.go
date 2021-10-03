@@ -125,7 +125,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 			Url:     "/api/file",
 			File:    "/controllers/file.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
@@ -220,7 +220,7 @@ func (o *FileController) CreateAll(c *gin.Context) {
 			Url:     "/api/file",
 			File:    "/controllers/file.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
@@ -283,7 +283,7 @@ func (*FileController) ReadOne(c *gin.Context) {
 				Url:     "/api/file",
 				File:    "/controllers/file.go",
 				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error.Error(),
+				Desc:    result.Error,
 			})
 			return
 		}
@@ -361,7 +361,7 @@ func (o *FileController) ReadAll(c *gin.Context) {
 				Url:     "/api/file",
 				File:    "/controllers/file.go",
 				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error.Error(),
+				Desc:    result.Error,
 			})
 			return
 		}
@@ -436,7 +436,7 @@ func (o *FileController) UpdateOne(c *gin.Context) {
 			Url:     "/api/file",
 			File:    "/controllers/file.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
@@ -646,7 +646,7 @@ func (o *FileController) DeleteAll(c *gin.Context) {
 			Url:     "/api/file",
 			File:    "/controllers/file.go",
 			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error.Error(),
+			Desc:    result.Error,
 		})
 		return
 	}
