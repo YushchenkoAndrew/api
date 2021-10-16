@@ -52,6 +52,7 @@ func (*FileController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 
 func (*FileController) parseBody(body *models.ReqFile, model *models.File) {
 	model.Name = body.Name
+	model.Path = body.Path
 	model.Role = body.Role
 	model.Type = body.Type
 }
