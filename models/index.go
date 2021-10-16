@@ -1,6 +1,6 @@
 package models
 
 type Ping struct {
-	Stat    string `json:"stat" example:"OK"`
+	Status  string `json:"status" example:"OK"`
 	Message string `json:"message" example:"pong"`
 }

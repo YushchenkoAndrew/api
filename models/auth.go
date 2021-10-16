@@ -15,7 +15,7 @@ type Login struct {
 }
 
 type Tokens struct {
-	Stat         string `json:"stat" xml:"stat" example:"OK"`
+	Status       string `json:"status" xml:"status" example:"OK"`
 	AccessToken  string `json:"access_token" xml:"access_token"`
 	RefreshToken string `json:"refresh_token" xml:"refresh_token" binding:"required"`
 }

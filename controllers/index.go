@@ -29,7 +29,7 @@ type IndexController struct{}
 // @Router /ping [get]
 func (*IndexController) Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Ping{
-		Stat:    "OK",
+		Status:  "OK",
 		Message: "pong",
 	})
 }
@@ -89,7 +89,7 @@ func (*IndexController) Login(c *gin.Context) {
 	db.Redis.Set(ctx, token.AccessUUID, config.ENV.ID, time.Duration((token.AccessExpire-now)*int64(time.Second)))
 	db.Redis.Set(ctx, token.RefreshUUID, config.ENV.ID, time.Duration((token.RefreshExpire-now)*int64(time.Second)))
 	helper.ResHandler(c, http.StatusOK, models.Tokens{
-		Stat:         "OK",
+		Status:       "OK",
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
 	})
@@ -177,7 +177,7 @@ func (*IndexController) Refresh(c *gin.Context) {
 	db.Redis.Set(ctx, t.AccessUUID, config.ENV.ID, time.Duration((t.AccessExpire-now)*int64(time.Second)))
 	db.Redis.Set(ctx, t.RefreshUUID, config.ENV.ID, time.Duration((t.RefreshExpire-now)*int64(time.Second)))
 	helper.ResHandler(c, http.StatusOK, models.Tokens{
-		Stat:         "OK",
+		Status:       "OK",
 		AccessToken:  t.AccessToken,
 		RefreshToken: t.RefreshToken,
 	})
