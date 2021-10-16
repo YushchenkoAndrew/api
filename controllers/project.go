@@ -31,9 +31,9 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 		result = result.Where("name = ?", name)
 	}
 
-	if dir := c.DefaultQuery("dir", ""); dir != "" {
-		sKeys += "dir"
-		result = result.Where("name = ?", dir)
+	if title := c.DefaultQuery("title", ""); title != "" {
+		sKeys += "title"
+		result = result.Where("title = ?", title)
 	}
 
 	start := c.DefaultQuery("start", "")
@@ -59,9 +59,10 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 
 func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Project) bool {
 	model.Name = body.Name
-	model.Dir = body.Dir
 	model.Title = body.Title
 	model.Desc = body.Desc
+	model.Note = body.Note
+	model.Flag = body.Flag
 
 	if len(body.Files) != 0 {
 		var fileMap = make(map[string]*models.File)
@@ -81,6 +82,7 @@ func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Pro
 
 func (*ProjectController) parseFileBody(body *models.File, model *models.File) {
 	model.Name = body.Name
+	model.Path = body.Path
 	model.Role = body.Role
 	model.Type = body.Type
 }
@@ -101,7 +103,7 @@ func (*ProjectController) parseFileBody(body *models.File, model *models.File) {
 // @Router /project [post]
 func (o *ProjectController) CreateOne(c *gin.Context) {
 	var body models.ReqProject
-	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Dir == "" {
+	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Title == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
 		return
 	}
@@ -175,7 +177,7 @@ func (o *ProjectController) CreateAll(c *gin.Context) {
 
 	var model = make([]models.Project, len(body))
 	for i := 0; i < len(body); i++ {
-		if body[i].Name == "" || body[i].Dir == "" {
+		if body[i].Name == "" || body[i].Title == "" {
 			helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 			return
 		}
@@ -298,8 +300,8 @@ func (*ProjectController) ReadOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Param id query int false "Type: '1'"
-// @Param name query string false "Type: 'Code Rain'"
-// @Param dir query string false "Type: 'CodeRain'"
+// @Param name query string false "Type: 'CodeRain'"
+// @Param title query string false "Type: 'Code Rain'"
 // @Param start query string false "CreatedAt date >= start"
 // @Param end query string false "CreatedAt date <= end"
 // @Param page query int false "Page: '0'"
@@ -343,7 +345,7 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 			return
 		}
 
-		if sKeys == "id" || sKeys == "name" || sKeys == "dir" || sKeys == "start" || sKeys == "end" {
+		if sKeys == "id" || sKeys == "name" || sKeys == "title" || sKeys == "start" || sKeys == "end" {
 			// Encode json to str
 			if str, err := json.Marshal(&project); err == nil {
 				go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
@@ -452,8 +454,8 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id query int false "Type: '1'"
-// @Param name query string false "Type: 'Code Rain'"
-// @Param dir query string false "Type: 'CodeRain'"
+// @Param name query string false "Type: 'CodeRain'"
+// @Param title query string false "Type: 'Code Rain'"
 // @Param model body models.ReqProject true "Project without File Data"
 // @Success 200 {object} models.Success{result=[]models.File}
 // @failure 400 {object} models.Error
@@ -498,7 +500,7 @@ func (o *ProjectController) UpdateAll(c *gin.Context) {
 
 	var items int64
 	ctx := context.Background()
-	if sKeys == "id" || sKeys == "name" || sKeys == "dir" {
+	if sKeys == "id" || sKeys == "name" || sKeys == "title" {
 		db.Redis.Del(ctx, "Project:"+c.DefaultQuery(sKeys, ""))
 	}
 
@@ -614,8 +616,8 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id query int false "Type: '1'"
-// @Param name query string false "Type: 'Code Rain'"
-// @Param dir query string false "Type: 'CodeRain'"
+// @Param name query string false "Type: 'CodeRain'"
+// @Param title query string false "Type: 'Code Rain'"
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -686,7 +688,7 @@ func (o *ProjectController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	if sKeys == "id" || sKeys == "name" || sKeys == "dir" {
+	if sKeys == "id" || sKeys == "name" || sKeys == "title" {
 		db.Redis.Del(ctx, "Project:"+c.DefaultQuery(sKeys, ""))
 	}
 
