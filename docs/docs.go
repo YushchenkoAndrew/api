@@ -1748,14 +1748,14 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'Code Rain'",
+                        "description": "Type: 'CodeRain'",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'CodeRain'",
-                        "name": "dir",
+                        "description": "Type: 'Code Rain'",
+                        "name": "title",
                         "in": "query"
                     },
                     {
@@ -1851,14 +1851,14 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'Code Rain'",
+                        "description": "Type: 'CodeRain'",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'CodeRain'",
-                        "name": "dir",
+                        "description": "Type: 'Code Rain'",
+                        "name": "title",
                         "in": "query"
                     },
                     {
@@ -2033,14 +2033,14 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'Code Rain'",
+                        "description": "Type: 'CodeRain'",
                         "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'CodeRain'",
-                        "name": "dir",
+                        "description": "Type: 'Code Rain'",
+                        "name": "title",
                         "in": "query"
                     }
                 ],
@@ -3183,6 +3183,10 @@ var doc = `{
                     "type": "string",
                     "example": "index.js"
                 },
+                "Path": {
+                    "type": "string",
+                    "example": "/test"
+                },
                 "ProjectID": {
                     "type": "integer",
                     "example": 1
@@ -3255,7 +3259,7 @@ var doc = `{
                     "type": "string",
                     "example": "pong"
                 },
-                "stat": {
+                "status": {
                     "type": "string",
                     "example": "OK"
                 }
@@ -3270,22 +3274,26 @@ var doc = `{
                 },
                 "Desc": {
                     "type": "string",
-                    "example": "Creating a 'Code Rain' effect from Matrix. As funny joke you can put any text to display at the end."
+                    "example": "Take the blue pill and the sit will close, or take the red pill and I show how deep the rebbit hole goes"
                 },
-                "Dir": {
+                "Flag": {
                     "type": "string",
-                    "example": "CodeRain"
+                    "example": "js"
                 },
                 "ID": {
                     "type": "integer"
                 },
                 "Name": {
                     "type": "string",
-                    "example": "Code Rain"
+                    "example": "CodeRain"
+                },
+                "Note": {
+                    "type": "string",
+                    "example": "Creating a 'Code Rain' effect from Matrix. As funny joke you can put any text to display at the end."
                 },
                 "Title": {
                     "type": "string",
-                    "example": "Take the blue pill and the sit will close, or take the red pill and I show how deep the rebbit hole goes"
+                    "example": "Code Rain"
                 },
                 "files": {
                     "type": "array",
@@ -3300,6 +3308,9 @@ var doc = `{
             "properties": {
                 "Name": {
                     "description": "ID        uint32    ` + "`" + `json:\"id\" xml:\"id\"` + "`" + `",
+                    "type": "string"
+                },
+                "Path": {
                     "type": "string"
                 },
                 "Role": {
@@ -3337,17 +3348,20 @@ var doc = `{
                 "Desc": {
                     "type": "string"
                 },
-                "Dir": {
-                    "type": "string"
-                },
                 "Files": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.File"
                     }
                 },
+                "Flag": {
+                    "type": "string"
+                },
                 "Name": {
                     "description": "ID        uint32    ` + "`" + `json:\"id\" xml:\"id\"` + "`" + `",
+                    "type": "string"
+                },
+                "Note": {
                     "type": "string"
                 },
                 "Title": {
@@ -3424,7 +3438,7 @@ var doc = `{
                 "refresh_token": {
                     "type": "string"
                 },
-                "stat": {
+                "status": {
                     "type": "string",
                     "example": "OK"
                 }

@@ -20,6 +20,9 @@ definitions:
       Name:
         example: index.js
         type: string
+      Path:
+        example: /test
+        type: string
       ProjectID:
         example: 1
         type: integer
@@ -71,7 +74,7 @@ definitions:
       message:
         example: pong
         type: string
-      stat:
+      status:
         example: OK
         type: string
     type: object
@@ -81,20 +84,23 @@ definitions:
         example: "2021-08-06"
         type: string
       Desc:
-        example: Creating a 'Code Rain' effect from Matrix. As funny joke you can
-          put any text to display at the end.
+        example: Take the blue pill and the sit will close, or take the red pill and
+          I show how deep the rebbit hole goes
         type: string
-      Dir:
-        example: CodeRain
+      Flag:
+        example: js
         type: string
       ID:
         type: integer
       Name:
-        example: Code Rain
+        example: CodeRain
+        type: string
+      Note:
+        example: Creating a 'Code Rain' effect from Matrix. As funny joke you can
+          put any text to display at the end.
         type: string
       Title:
-        example: Take the blue pill and the sit will close, or take the red pill and
-          I show how deep the rebbit hole goes
+        example: Code Rain
         type: string
       files:
         items:
@@ -105,6 +111,8 @@ definitions:
     properties:
       Name:
         description: ID        uint32    `json:"id" xml:"id"`
+        type: string
+      Path:
         type: string
       Role:
         type: string
@@ -131,14 +139,16 @@ definitions:
     properties:
       Desc:
         type: string
-      Dir:
-        type: string
       Files:
         items:
           $ref: '#/definitions/models.File'
         type: array
+      Flag:
+        type: string
       Name:
         description: ID        uint32    `json:"id" xml:"id"`
+        type: string
+      Note:
         type: string
       Title:
         type: string
@@ -190,7 +200,7 @@ definitions:
         type: string
       refresh_token:
         type: string
-      stat:
+      status:
         example: OK
         type: string
     required:
@@ -1281,13 +1291,13 @@ paths:
         in: query
         name: id
         type: integer
-      - description: 'Type: ''Code Rain'''
+      - description: 'Type: ''CodeRain'''
         in: query
         name: name
         type: string
-      - description: 'Type: ''CodeRain'''
+      - description: 'Type: ''Code Rain'''
         in: query
-        name: dir
+        name: title
         type: string
       produces:
       - application/json
@@ -1337,13 +1347,13 @@ paths:
         in: query
         name: id
         type: integer
-      - description: 'Type: ''Code Rain'''
+      - description: 'Type: ''CodeRain'''
         in: query
         name: name
         type: string
-      - description: 'Type: ''CodeRain'''
+      - description: 'Type: ''Code Rain'''
         in: query
-        name: dir
+        name: title
         type: string
       - description: CreatedAt date >= start
         in: query
@@ -1449,13 +1459,13 @@ paths:
         in: query
         name: id
         type: integer
-      - description: 'Type: ''Code Rain'''
+      - description: 'Type: ''CodeRain'''
         in: query
         name: name
         type: string
-      - description: 'Type: ''CodeRain'''
+      - description: 'Type: ''Code Rain'''
         in: query
-        name: dir
+        name: title
         type: string
       - description: Project without File Data
         in: body
