@@ -175,6 +175,8 @@ func (o *ProjectController) CreateAll(c *gin.Context) {
 		return
 	}
 
+	// TODO: Add query param to disable or enable loading Files or not
+
 	var model = make([]models.Project, len(body))
 	for i := 0; i < len(body); i++ {
 		if body[i].Name == "" || body[i].Title == "" {
