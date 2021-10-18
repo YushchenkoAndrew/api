@@ -1371,6 +1371,14 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: 'Type: ''js,html,img'''
+        in: query
+        name: type
+        type: string
+      - description: 'Role: ''src,assets,styles'''
+        in: query
+        name: role
+        type: string
       produces:
       - application/json
       - application/xml

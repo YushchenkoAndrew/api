@@ -1781,6 +1781,18 @@ var doc = `{
                         "description": "Limit: '1'",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type: 'js,html,img'",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role: 'src,assets,styles'",
+                        "name": "role",
+                        "in": "query"
                     }
                 ],
                 "responses": {
