@@ -57,6 +57,31 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
+func (*ProjectController) filterChildQuery(c *gin.Context) (result []interface{}) {
+	var condition string = ""
+	var args []interface{}
+
+	if typeName := c.DefaultQuery("type", ""); typeName != "" {
+		condition = "type = ?"
+		args = append(args, typeName)
+	}
+
+	if role := c.DefaultQuery("role", ""); role != "" {
+		if condition == "" {
+			condition = "role = ?"
+		} else {
+			condition += "AND role = ?"
+		}
+		args = append(args, role)
+	}
+
+	if condition != "" {
+		result = append(append(result, condition), args...)
+	}
+
+	return
+}
+
 func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Project) bool {
 	model.Name = body.Name
 	model.Title = body.Title
@@ -308,6 +333,8 @@ func (*ProjectController) ReadOne(c *gin.Context) {
 // @Param end query string false "CreatedAt date <= end"
 // @Param page query int false "Page: '0'"
 // @Param limit query int false "Limit: '1'"
+// @Param type query string false "Files Type: 'js,html,img'"
+// @Param role query string false "Files Role: 'src,assets,styles'"
 // @Success 200 {object} models.Success{result=[]models.Project}
 // @failure 429 {object} models.Error
 // @failure 400 {object} models.Error
@@ -333,7 +360,8 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 	}
 
 	if len(project) == 0 {
-		result = result.Offset(page * config.ENV.Items).Limit(limit).Preload("Files").Find(&project)
+		condition := o.filterChildQuery(c)
+		result = result.Offset(page*config.ENV.Items).Limit(limit).Preload("Files", condition...).Find(&project)
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 			go logs.SendLogs(&models.LogMessage{
