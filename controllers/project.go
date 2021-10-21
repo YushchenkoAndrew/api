@@ -253,33 +253,33 @@ func (o *ProjectController) CreateAll(c *gin.Context) {
 }
 
 // @Tags Project
-// @Summary Read Project by :id
+// @Summary Read Project by it's name
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
-// @Param id path int true "Instance id"
+// @Param name path string true "Project Name"
 // @Success 200 {object} models.Success{result=[]models.Project}
 // @failure 429 {object} models.Error
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /project/{id} [get]
+// @Router /project/{name} [get]
 func (*ProjectController) ReadOne(c *gin.Context) {
-	var id int
+	var name string
 	var project []models.Project
 
-	if !helper.GetID(c, &id) {
+	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id value")
 		return
 	}
 
 	ctx := context.Background()
-	key := "Project:" + strconv.Itoa(id)
+	key := "Project:" + name
 	// Check if cache have requested data
 	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
 		json.Unmarshal([]byte(data), &project)
 		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
 	} else {
-		result := db.DB.Where("id = ?", id).Preload("Files").Find(&project)
+		result := db.DB.Where("name = ?", name).Preload("Files").Find(&project)
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 			go logs.SendLogs(&models.LogMessage{
@@ -407,24 +407,26 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 }
 
 // @Tags Project
-// @Summary Update Project by :id
+// @Summary Update Project by it's name
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param id path int true "Instance id"
+// @Param name path string true "Project Name"
 // @Param model body models.ReqProject true "Project without File Data"
 // @Success 200 {object} models.Success{result=[]models.Project}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
+// @failure 416 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /project/{id} [put]
+// @Router /project/{name} [put]
 func (o *ProjectController) UpdateOne(c *gin.Context) {
-	var id int
 	var body models.ReqProject
-	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) || len(body.Files) != 0 {
+
+	var name = c.Param("name")
+	if err := c.ShouldBind(&body); err != nil || name == "" || len(body.Files) != 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
 	}
@@ -434,9 +436,9 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 	// from db
 	var model models.Project
 	o.parseBody(&body, &model)
-	result := db.DB.Where("id = ?", id).Updates(&model)
+	result := db.DB.Where("name = ?", name).Updates(&model)
 	if result.RowsAffected != 1 {
-		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id param")
+		helper.ErrHandler(c, http.StatusRequestedRangeNotSatisfiable, "Such record doesn't exist within db")
 		return
 	}
 
@@ -454,7 +456,7 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	db.Redis.Del(ctx, "Project:"+strconv.Itoa(id))
+	db.Redis.Del(ctx, "Project:"+name)
 
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
@@ -556,28 +558,62 @@ func (o *ProjectController) UpdateAll(c *gin.Context) {
 }
 
 // @Tags Project
-// @Summary Delete Project and Files by :id
+// @Summary Delete Project and Files by it's name
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param id path int true "Instance id"
+// @Param name path string true "Project Name"
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
+// @failure 416 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /project/{id} [delete]
+// @Router /project/{name} [delete]
 func (*ProjectController) DeleteOne(c *gin.Context) {
-	var id int
-	if !helper.GetID(c, &id) {
+	var name string
+	var project []models.Project
+
+	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
 		return
 	}
 
+	key := "Project:" + name
+	ctx := context.Background()
+	// Check if cache have requested data
+	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
+		json.Unmarshal([]byte(data), &project)
+		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
+	} else {
+		result := db.DB.Where("name = ?", name).Find(&project)
+		if result.Error != nil {
+			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				Url:     "/api/project",
+				File:    "/controllers/project.go",
+				Message: "It's not an error Karl; It's a bug!!",
+				Desc:    result.Error,
+			})
+			return
+		}
+
+		// Encode json to str
+		if str, err := json.Marshal(&project); err == nil {
+			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
+		}
+	}
+
+	if len(project) == 0 {
+		helper.ErrHandler(c, http.StatusRequestedRangeNotSatisfiable, "Such record doesn't exist within db")
+	}
+
 	// Delete in both place Files & Project
-	if result := db.DB.Where("project_id = ?", id).Delete(&models.File{}); result.Error != nil {
+	if result := db.DB.Where("project_id = ?", project[0].ID).Delete(&models.File{}); result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		go logs.SendLogs(&models.LogMessage{
 			Stat:    "ERR",
@@ -590,12 +626,7 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	result := db.DB.Where("id = ?", id).Delete(&models.Project{})
-	if result.RowsAffected != 1 {
-		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id param")
-		return
-	}
-
+	result := db.DB.Where("name = ?", name).Delete(&models.Project{})
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
 		go logs.SendLogs(&models.LogMessage{
@@ -609,9 +640,7 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
-	db.Redis.Del(ctx, "Project:"+strconv.Itoa(id))
-
+	db.Redis.Del(ctx, key)
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
@@ -651,6 +680,7 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 // @Success 200 {object} models.Success{result=[]string{}}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
+// @failure 416 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
@@ -677,7 +707,7 @@ func (o *ProjectController) DeleteAll(c *gin.Context) {
 
 	if len(project) == 0 {
 		if result := result.Find(&project); result.Error != nil || len(project) == 0 {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			helper.ErrHandler(c, http.StatusRequestedRangeNotSatisfiable, "Such record doesn't exist within db")
 			go logs.SendLogs(&models.LogMessage{
 				Stat:    "ERR",
 				Name:    "API",

@@ -15,12 +15,12 @@ func Project(rg *gin.RouterGroup) {
 	auth.POST("", cProject.CreateOne)
 	auth.POST("/list", cProject.CreateAll)
 
-	route.GET("/:id", cProject.ReadOne)
+	route.GET("/:name", cProject.ReadOne)
 	route.GET("", cProject.ReadAll)
 
-	auth.PUT("/:id", cProject.UpdateOne)
+	auth.PUT("/:name", cProject.UpdateOne)
 	auth.PUT("", cProject.UpdateAll)
 
-	auth.DELETE("/:id", cProject.DeleteOne)
+	auth.DELETE("/:name", cProject.DeleteOne)
 	auth.DELETE("", cProject.DeleteAll)
 }
