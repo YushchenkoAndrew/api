@@ -1322,6 +1322,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/models.Error'
+        "416":
+          description: Requested Range Not Satisfiable
+          schema:
+            $ref: '#/definitions/models.Error'
         "422":
           description: Unprocessable Entity
           schema:
@@ -1371,11 +1375,11 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: 'Type: ''js,html,img'''
+      - description: 'Files Type: ''js,html,img'''
         in: query
         name: type
         type: string
-      - description: 'Role: ''src,assets,styles'''
+      - description: 'Files Role: ''src,assets,styles'''
         in: query
         name: role
         type: string
@@ -1521,16 +1525,16 @@ paths:
       summary: Update Project by Query
       tags:
       - Project
-  /project/{id}:
+  /project/{name}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: Instance id
+      - description: Project Name
         in: path
-        name: id
+        name: name
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       - application/xml
@@ -1554,6 +1558,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/models.Error'
+        "416":
+          description: Requested Range Not Satisfiable
+          schema:
+            $ref: '#/definitions/models.Error'
         "422":
           description: Unprocessable Entity
           schema:
@@ -1568,18 +1576,18 @@ paths:
             $ref: '#/definitions/models.Error'
       security:
       - BearerAuth: []
-      summary: Delete Project and Files by :id
+      summary: Delete Project and Files by it's name
       tags:
       - Project
     get:
       consumes:
       - application/json
       parameters:
-      - description: Instance id
+      - description: Project Name
         in: path
-        name: id
+        name: name
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       - application/xml
@@ -1607,18 +1615,18 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Error'
-      summary: Read Project by :id
+      summary: Read Project by it's name
       tags:
       - Project
     put:
       consumes:
       - application/json
       parameters:
-      - description: Instance id
+      - description: Project Name
         in: path
-        name: id
+        name: name
         required: true
-        type: integer
+        type: string
       - description: Project without File Data
         in: body
         name: model
@@ -1648,6 +1656,10 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/models.Error'
+        "416":
+          description: Requested Range Not Satisfiable
+          schema:
+            $ref: '#/definitions/models.Error'
         "422":
           description: Unprocessable Entity
           schema:
@@ -1662,7 +1674,7 @@ paths:
             $ref: '#/definitions/models.Error'
       security:
       - BearerAuth: []
-      summary: Update Project by :id
+      summary: Update Project by it's name
       tags:
       - Project
   /project/list/{id}:

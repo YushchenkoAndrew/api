@@ -1770,13 +1770,13 @@
                     },
                     {
                         "type": "string",
-                        "description": "Type: 'js,html,img'",
+                        "description": "Files Type: 'js,html,img'",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Role: 'src,assets,styles'",
+                        "description": "Files Role: 'src,assets,styles'",
                         "name": "role",
                         "in": "query"
                     }
@@ -2076,6 +2076,12 @@
                             "$ref": "#/definitions/models.Error"
                         }
                     },
+                    "416": {
+                        "description": "Requested Range Not Satisfiable",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
@@ -2184,7 +2190,7 @@
                 }
             }
         },
-        "/project/{id}": {
+        "/project/{name}": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -2196,12 +2202,12 @@
                 "tags": [
                     "Project"
                 ],
-                "summary": "Read Project by :id",
+                "summary": "Read Project by it's name",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Instance id",
-                        "name": "id",
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "name",
                         "in": "path",
                         "required": true
                     }
@@ -2264,12 +2270,12 @@
                 "tags": [
                     "Project"
                 ],
-                "summary": "Update Project by :id",
+                "summary": "Update Project by it's name",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Instance id",
-                        "name": "id",
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "name",
                         "in": "path",
                         "required": true
                     },
@@ -2317,6 +2323,12 @@
                             "$ref": "#/definitions/models.Error"
                         }
                     },
+                    "416": {
+                        "description": "Requested Range Not Satisfiable",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
@@ -2353,12 +2365,12 @@
                 "tags": [
                     "Project"
                 ],
-                "summary": "Delete Project and Files by :id",
+                "summary": "Delete Project and Files by it's name",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Instance id",
-                        "name": "id",
+                        "type": "string",
+                        "description": "Project Name",
+                        "name": "name",
                         "in": "path",
                         "required": true
                     }
@@ -2393,6 +2405,12 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "416": {
+                        "description": "Requested Range Not Satisfiable",
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
