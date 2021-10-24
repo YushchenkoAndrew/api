@@ -73,14 +73,7 @@ func (*IndexController) Login(c *gin.Context) {
 	var token models.Auth
 	if err := middleware.CreateToken(&token); err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server Side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/login",
-			File:    "/controllers/index.go",
-			Message: "Ohhh come on I fixed you yesterday !!!",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/index.go", err.Error())
 		return
 	}
 
@@ -162,14 +155,7 @@ func (*IndexController) Refresh(c *gin.Context) {
 	var t models.Auth
 	if err := middleware.CreateToken(&t); err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server Side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/login",
-			File:    "/controllers/index.go",
-			Message: "Ohhh, come on I fixed you yesterday !!!",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/index.go", err.Error())
 		return
 	}
 

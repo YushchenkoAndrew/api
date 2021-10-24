@@ -120,29 +120,18 @@ func (o *FileController) CreateOne(c *gin.Context) {
 
 	if result.Error != nil || result.RowsAffected == 0 {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Something unexpected happend")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/file",
-			File:    "/controllers/file.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/file.go", result.Error)
 		return
 	}
+
+	go db.FlushValue("File")
 
 	db.Redis.Incr(ctx, "nFile")
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	go db.Redis.Incr(ctx, "nFile")
@@ -215,28 +204,17 @@ func (o *FileController) CreateAll(c *gin.Context) {
 	result := db.DB.Create(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/file",
-			File:    "/controllers/file.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/file.go", result.Error)
 		return
 	}
+
+	go db.FlushValue("File")
 
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	go helper.RedisAdd(&ctx, "nFile", result.RowsAffected)
@@ -278,14 +256,7 @@ func (*FileController) ReadOne(c *gin.Context) {
 		result := db.DB.Where("id = ?", id).Find(&files)
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.SendLogs(&models.LogMessage{
-				Stat:    "ERR",
-				Name:    "API",
-				Url:     "/api/file",
-				File:    "/controllers/file.go",
-				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error,
-			})
+			go logs.DefaultLog("/controllers/file.go", result.Error)
 			return
 		}
 
@@ -300,13 +271,7 @@ func (*FileController) ReadOne(c *gin.Context) {
 	if items, err = db.Redis.Get(ctx, "nFile").Int64(); err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -323,6 +288,7 @@ func (*FileController) ReadOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Param id query int false "Type: '1'"
+// @Param name query string false "Type: 'index.js'"
 // @Param type query string false "Type: 'js,html,img'"
 // @Param role query string false "Role: 'src,assets,styles'"
 // @Param project_id query string false "ProjectID: '1'"
@@ -356,14 +322,7 @@ func (o *FileController) ReadAll(c *gin.Context) {
 		result = result.Offset(page * config.ENV.Items).Limit(limit).Find(&files)
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.SendLogs(&models.LogMessage{
-				Stat:    "ERR",
-				Name:    "API",
-				Url:     "/api/file",
-				File:    "/controllers/file.go",
-				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error,
-			})
+			go logs.DefaultLog("/controllers/file.go", result.Error)
 			return
 		}
 
@@ -379,13 +338,7 @@ func (o *FileController) ReadAll(c *gin.Context) {
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -431,31 +384,18 @@ func (o *FileController) UpdateOne(c *gin.Context) {
 
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/file",
-			File:    "/controllers/file.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/file.go", result.Error)
 		return
 	}
 
-	ctx := context.Background()
-	db.Redis.Del(ctx, "File:"+strconv.Itoa(id))
+	go db.FlushValue("File")
 
+	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -504,34 +444,19 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 	result = result.Updates(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/file",
-			File:    "/controllers/file.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/file.go", result.Error)
 		return
 	}
 
+	go db.FlushValue("File")
+
 	var items int64
 	ctx := context.Background()
-	if sKeys == "id" || sKeys == "project_id" || sKeys == "role" || sKeys == "name" {
-		db.Redis.Del(ctx, "File:"+c.DefaultQuery(sKeys, ""))
-	}
-
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -571,31 +496,18 @@ func (*FileController) DeleteOne(c *gin.Context) {
 
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/file",
-			File:    "/controllers/file.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/file.go", result.Error)
 		return
 	}
 
-	ctx := context.Background()
-	db.Redis.Del(ctx, "File:"+strconv.Itoa(id))
+	go db.FlushValue("File")
 
+	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	if items == 0 {
@@ -641,33 +553,18 @@ func (o *FileController) DeleteAll(c *gin.Context) {
 	result = result.Delete(&models.File{})
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/file",
-			File:    "/controllers/file.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/file.go", result.Error)
 		return
 	}
 
-	ctx := context.Background()
-	if sKeys == "id" || sKeys == "project_id" || sKeys == "role" || sKeys == "name" {
-		db.Redis.Del(ctx, "File:"+c.DefaultQuery(sKeys, ""))
-	}
+	go db.FlushValue("File")
 
+	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/file.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
 	if items == 0 {

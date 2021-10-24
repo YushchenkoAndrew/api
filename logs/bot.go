@@ -45,3 +45,13 @@ func SendLogs(message *models.LogMessage) {
 
 	defer res.Body.Close()
 }
+
+func DefaultLog(file string, err interface{}) {
+	SendLogs(&models.LogMessage{
+		Stat:    "ERR",
+		Name:    "API",
+		File:    file,
+		Message: "Ohh nooo Cache is broken; Anyway...",
+		Desc:    err,
+	})
+}

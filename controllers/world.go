@@ -91,14 +91,7 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/world",
-			File:    "/controllers/world.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/world.go", result.Error)
 		return
 	}
 
@@ -106,14 +99,10 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
+
+	go db.FlushValue("World")
 
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
@@ -175,14 +164,7 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 		} else if body[i].Visitors == nil || *body[i].Visitors != m.Visitors { // Check if data is changed
 			if result = db.DB.Where("country = ?", body[i].Country).Updates(&m); result.Error != nil {
 				helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong2")
-				go logs.SendLogs(&models.LogMessage{
-					Stat:    "ERR",
-					Name:    "API",
-					Url:     "/api/world",
-					File:    "/controllers/world.go",
-					Message: "It's not an error Karl; It's a bug!!",
-					Desc:    result.Error,
-				})
+				go logs.DefaultLog("/controllers/world.go", result.Error)
 				return
 			}
 		}
@@ -191,30 +173,19 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 	if len(modelToCreate) != 0 {
 		if result = db.DB.Create(&modelToCreate); result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.SendLogs(&models.LogMessage{
-				Stat:    "ERR",
-				Name:    "API",
-				Url:     "/api/world",
-				File:    "/controllers/world.go",
-				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error,
-			})
+			go logs.DefaultLog("/controllers/world.go", result.Error)
 			return
 		}
 	}
+
+	go db.FlushValue("World")
 
 	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	// Make an update without stoping the response handler
@@ -257,14 +228,7 @@ func (*WorldController) ReadOne(c *gin.Context) {
 		result := db.DB.Where("id = ?", id).Find(&model)
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.SendLogs(&models.LogMessage{
-				Stat:    "ERR",
-				Name:    "API",
-				Url:     "/api/world",
-				File:    "/controllers/world.go",
-				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error,
-			})
+			go logs.DefaultLog("/controllers/world.go", result.Error)
 			return
 		}
 
@@ -279,13 +243,7 @@ func (*WorldController) ReadOne(c *gin.Context) {
 	if items, err = db.Redis.Get(ctx, "nWorld").Int64(); err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -343,14 +301,7 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 
 		if result.Error != nil {
 			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.SendLogs(&models.LogMessage{
-				Stat:    "ERR",
-				Name:    "API",
-				Url:     "/api/world",
-				File:    "/controllers/world.go",
-				Message: "It's not an error Karl; It's a bug!!",
-				Desc:    result.Error,
-			})
+			go logs.DefaultLog("/controllers/world.go", result.Error)
 			return
 		}
 
@@ -366,13 +317,7 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -418,31 +363,18 @@ func (o *WorldController) UpdateOne(c *gin.Context) {
 
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/world",
-			File:    "/controllers/world.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/world.go", result.Error)
 		return
 	}
 
-	ctx := context.Background()
-	db.Redis.Del(ctx, "World:"+strconv.Itoa(id))
+	go db.FlushValue("World")
 
+	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -490,34 +422,19 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 	result = result.Updates(&model)
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/world",
-			File:    "/controllers/world.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/world.go", result.Error)
 		return
 	}
 
+	go db.FlushValue("World")
+
 	var items int64
 	ctx := context.Background()
-	if sKeys == "id" || sKeys == "updated_at" {
-		db.Redis.Del(ctx, "World:"+c.DefaultQuery(sKeys, ""))
-	}
-
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
@@ -557,31 +474,18 @@ func (*WorldController) DeleteOne(c *gin.Context) {
 
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/world",
-			File:    "/controllers/world.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/world.go", result.Error)
 		return
 	}
 
-	ctx := context.Background()
-	db.Redis.Del(ctx, "World:"+strconv.Itoa(id))
+	go db.FlushValue("World")
 
+	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	if items == 0 {
@@ -626,33 +530,18 @@ func (o *WorldController) DeleteAll(c *gin.Context) {
 	result = result.Delete(&models.World{})
 	if result.Error != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			Url:     "/api/world",
-			File:    "/controllers/world.go",
-			Message: "It's not an error Karl; It's a bug!!",
-			Desc:    result.Error,
-		})
+		go logs.DefaultLog("/controllers/world.go", result.Error)
 		return
 	}
 
-	ctx := context.Background()
-	if sKeys == "id" || sKeys == "updated_at" {
-		db.Redis.Del(ctx, "World:"+c.DefaultQuery(sKeys, ""))
-	}
+	go db.FlushValue("World")
 
+	ctx := context.Background()
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
 		go db.RedisInitDefault()
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/world.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
 	if items == 0 {
