@@ -57,7 +57,7 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*ProjectController) filterChildQuery(c *gin.Context) (result []interface{}) {
+func (*ProjectController) filterFileQuery(c *gin.Context) (result []interface{}) {
 	var condition string = ""
 	var args []interface{}
 
@@ -82,6 +82,14 @@ func (*ProjectController) filterChildQuery(c *gin.Context) (result []interface{}
 	return
 }
 
+func (*ProjectController) filterLinkQuery(c *gin.Context) []interface{} {
+	if name := c.DefaultQuery("link_name", ""); name != "" {
+		return []interface{}{"name = ?", name}
+	}
+
+	return []interface{}{}
+}
+
 func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Project) bool {
 	model.Name = body.Name
 	model.Title = body.Title
@@ -102,6 +110,20 @@ func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Pro
 			fileMap[model.Files[i].Name] = &model.Files[i]
 		}
 	}
+
+	if len(body.Links) != 0 {
+		var fileMap = make(map[string]*models.Link)
+
+		model.Links = make([]models.Link, len(body.Links))
+		for i := 0; i < len(body.Links); i++ {
+			if _, ok := fileMap[body.Links[i].Name]; ok {
+				return false
+			}
+
+			o.parseLinkBody(&body.Links[i], &model.Links[i])
+			fileMap[model.Links[i].Name] = &model.Links[i]
+		}
+	}
 	return true
 }
 
@@ -110,6 +132,11 @@ func (*ProjectController) parseFileBody(body *models.File, model *models.File) {
 	model.Path = body.Path
 	model.Role = body.Role
 	model.Type = body.Type
+}
+
+func (*ProjectController) parseLinkBody(body *models.Link, model *models.Link) {
+	model.Name = body.Name
+	model.Link = body.Link
 }
 
 // @Tags Project

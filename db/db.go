@@ -39,6 +39,7 @@ func MigrateTables(bForce bool) {
 			&models.World{},
 			&models.Project{},
 			&models.File{},
+			&models.Link{},
 		)
 	}
 
@@ -47,5 +48,6 @@ func MigrateTables(bForce bool) {
 		&models.World{},
 		&models.Project{},
 		&models.File{},
+		&models.Link{},
 	)
 }
