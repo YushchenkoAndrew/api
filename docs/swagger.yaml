@@ -59,6 +59,23 @@ definitions:
         example: 4
         type: integer
     type: object
+  models.Link:
+    properties:
+      ID:
+        type: integer
+      Link:
+        example: https://github.com/YushchenkoAndrew/template
+        type: string
+      Name:
+        example: main
+        type: string
+      ProjectID:
+        example: 1
+        type: integer
+      UpdatedAt:
+        example: "2021-08-27T16:17:53.119571+03:00"
+        type: string
+    type: object
   models.Login:
     properties:
       pass:
@@ -106,6 +123,10 @@ definitions:
         items:
           $ref: '#/definitions/models.File'
         type: array
+      links:
+        items:
+          $ref: '#/definitions/models.Link'
+        type: array
     type: object
   models.ReqFile:
     properties:
@@ -135,6 +156,14 @@ definitions:
       Visitors:
         type: integer
     type: object
+  models.ReqLink:
+    properties:
+      Link:
+        type: string
+      Name:
+        description: ID        uint32    `json:"id" xml:"id"`
+        type: string
+    type: object
   models.ReqProject:
     properties:
       Desc:
@@ -145,6 +174,10 @@ definitions:
         type: array
       Flag:
         type: string
+      Links:
+        items:
+          $ref: '#/definitions/models.Link'
+        type: array
       Name:
         description: ID        uint32    `json:"id" xml:"id"`
         type: string
@@ -302,6 +335,10 @@ paths:
         in: query
         name: id
         type: integer
+      - description: 'Type: ''index.js'''
+        in: query
+        name: name
+        type: string
       - description: 'Type: ''js,html,img'''
         in: query
         name: type
@@ -1230,6 +1267,436 @@ paths:
       summary: Get Info Sum
       tags:
       - Info
+  /link:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance :id
+        in: query
+        name: id
+        type: integer
+      - description: 'Type: ''Name: ''main'''
+        in: query
+        name: name
+        type: string
+      - description: 'ProjectID: ''1'''
+        in: query
+        name: project_id
+        type: string
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    type: string
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Delete Link by Query
+      tags:
+      - Link
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'Type: ''1'''
+        in: query
+        name: id
+        type: integer
+      - description: 'Type: ''Name: ''main'''
+        in: query
+        name: name
+        type: string
+      - description: 'ProjectID: ''1'''
+        in: query
+        name: project_id
+        type: string
+      - description: 'Page: ''0'''
+        in: query
+        name: page
+        type: integer
+      - description: 'Limit: ''1'''
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.Link'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Read Link by Query
+      tags:
+      - Link
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'Type: ''1'''
+        in: query
+        name: id
+        type: integer
+      - description: 'Type: ''Name: ''main'''
+        in: query
+        name: name
+        type: string
+      - description: 'ProjectID: ''1'''
+        in: query
+        name: project_id
+        type: string
+      - description: Link Data
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReqLink'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.Link'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Update Link by Query
+      tags:
+      - Link
+  /link/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    type: string
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Delete Link by :id
+      tags:
+      - Link
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.Link'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Read Link by :id
+      tags:
+      - Link
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project primaray id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Link info
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReqLink'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.Link'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Create link by project id
+      tags:
+      - Link
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Link Data
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReqLink'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.Link'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Update Link by :id
+      tags:
+      - Link
+  /link/list/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: List of Links info
+        in: body
+        name: model
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/models.ReqLink'
+          type: array
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.Link'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.Error'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      security:
+      - BearerAuth: []
+      summary: Create File from list of objects
+      tags:
+      - Link
   /login:
     post:
       consumes:
@@ -1351,11 +1818,11 @@ paths:
         in: query
         name: id
         type: integer
-      - description: 'Type: ''CodeRain'''
+      - description: 'Name: ''CodeRain'''
         in: query
         name: name
         type: string
-      - description: 'Type: ''Code Rain'''
+      - description: 'Title: ''Code Rain'''
         in: query
         name: title
         type: string
@@ -1382,6 +1849,10 @@ paths:
       - description: 'Files Role: ''src,assets,styles'''
         in: query
         name: role
+        type: string
+      - description: 'Name: ''main'''
+        in: query
+        name: link_name
         type: string
       produces:
       - application/json
