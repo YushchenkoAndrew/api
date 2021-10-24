@@ -36,24 +36,40 @@ func RedisInitDefault() {
 	var nInfo int64
 	var nWorld int64
 	var nFile int64
+	var nLink int64
 	var nProject int64
 
 	DB.Model(&models.Info{}).Count(&nInfo)
 	DB.Model(&models.World{}).Count(&nWorld)
 	DB.Model(&models.File{}).Count(&nFile)
+	DB.Model(&models.Link{}).Count(&nLink)
 	DB.Model(&models.Project{}).Count(&nProject)
 
 	// FIXME: ERROR log format
 	ctx := context.Background()
 	var SetVar = func(ctx *context.Context, param string, value interface{}) {
 		if err := Redis.Set(*ctx, param, value, 0).Err(); err != nil {
-			fmt.Println("ERROR:")
+			fmt.Println("[Redis] Error happed while setting value to Cache")
 		}
 	}
 
 	SetVar(&ctx, "nInfo", nInfo)
 	SetVar(&ctx, "nWorld", nWorld)
 	SetVar(&ctx, "nFile", nFile)
+	SetVar(&ctx, "nLink", nLink)
 	SetVar(&ctx, "nProject", nFile)
 	SetVar(&ctx, "Mutex", 1)
+}
+
+func FlushValue(key string) {
+	ctx := context.Background()
+	iter := Redis.Scan(ctx, 0, key+":*", 0).Iterator()
+
+	for iter.Next(ctx) {
+		Redis.Del(ctx, iter.Val())
+	}
+
+	if err := iter.Err(); err != nil {
+		fmt.Println("[Redis] Error happed while setting interating through keys")
+	}
 }
