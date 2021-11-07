@@ -1,8 +1,9 @@
 FROM golang:1.16-alpine AS builder
-RUN apk --no-cache add ca-certificates git
+RUN apk --no-cache add ca-certificates gcc g++ make bash git
 WORKDIR /app
 
 ENV GIN_MODE=release
+ENV GO111MODULE=on
 
 # Fetch dependencies
 COPY go.mod go.sum ./
@@ -19,7 +20,7 @@ WORKDIR /
 ENV GIN_MODE=release
 
 # Copy config file & complied file
-COPY --from=builder /app/.env .
+COPY .env.template .env
 COPY --from=builder /app/api .
 
 EXPOSE 31337

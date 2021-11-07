@@ -1,0 +1,5 @@
+kubernetes/
+.env
+.gitignore
+.dockerignore
+Dockerfile

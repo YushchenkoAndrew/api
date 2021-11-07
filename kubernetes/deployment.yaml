@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: grimreapermortis/api-golang:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 31337
+          envFrom:
+          - secretRef:
+              name: api-secrete
+          env:
+            - name: REDIS_HOST
+              value: $(REDIS_SERVICE_SERVICE_HOST)
+            - name: DB_HOST
+              value: $(DB_SERVICE_SERVICE_HOST)
+            - name: BOT_HOST
+              value: ""
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      containers:
+        - name: redis
+          image: redis
+          # resources:
+          #   requests:
+          #     cpu: 100m
+          #     memory: 100Mi
+          ports:
+            - containerPort: 6379
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-deployment
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: db-pvc
+      containers:
+        - name: db
+          image: postgres:14-alpine
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/postgresql/data
+              readOnly: false
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: api-secrete
+                  key: DB_USER
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-secrete
+                  key: DB_PASS
+
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: api-secrete
+                  key: DB_NAME
+
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+
+
