@@ -20,8 +20,8 @@ spec:
           ports:
             - containerPort: 31337
           envFrom:
-          - secretRef:
-              name: api-secrete
+            - secretRef:
+                name: api-secrete
           env:
             - name: REDIS_HOST
               value: $(REDIS_SERVICE_SERVICE_HOST)
@@ -31,7 +31,6 @@ spec:
               value: ""
 
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,16 +41,14 @@ spec:
   selector:
     matchLabels:
       app: redis
-      role: master
   template:
     metadata:
       labels:
         app: redis
-        role: master
     spec:
       containers:
         - name: redis
-          image: redis
+          image: redis:6-alpine
           # resources:
           #   requests:
           #     cpu: 100m
@@ -60,7 +57,6 @@ spec:
             - containerPort: 6379
 
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -110,6 +106,3 @@ spec:
 
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
-
-
-

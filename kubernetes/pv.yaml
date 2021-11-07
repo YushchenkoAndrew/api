@@ -9,8 +9,8 @@ spec:
   accessModes:
     - ReadWriteOnce
   nfs:
-    path: /home/pi/nfs
-    server: 192.168.1.2
+    path: /media/sda1/psql
+    server: 192.168.0.102
   persistentVolumeReclaimPolicy: Retain
   claimRef:
     name: db-pvc
