@@ -27,8 +27,8 @@ spec:
               value: $(REDIS_SERVICE_SERVICE_HOST)
             - name: DB_HOST
               value: $(DB_SERVICE_SERVICE_HOST)
-            - name: BOT_HOST
-              value: ""
+            - name: BOT_URL
+              value: http://$(BOT_SERVICE_SERVICE_HOST):$(BOT_SERVICE_SERVICE_PORT)/bot
 
 ---
 apiVersion: apps/v1
