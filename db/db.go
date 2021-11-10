@@ -3,7 +3,7 @@ package db
 import (
 	"api/config"
 	"api/logs"
-	models "api/models"
+	"api/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -32,22 +32,12 @@ func ConnectToDB() {
 	}
 }
 
-func MigrateTables(bForce bool) {
-	if bForce {
-		DB.Migrator().DropTable(
-			&models.Info{},
-			&models.World{},
-			&models.Project{},
-			&models.File{},
-			&models.Link{},
-		)
-	}
-
-	DB.AutoMigrate(
-		&models.Info{},
-		&models.World{},
-		&models.Project{},
-		&models.File{},
-		&models.Link{},
-	)
+func MigrateTables() {
+	Info()
+	File()
+	Link()
+	World()
+	Project()
+	GeoIpBlocks()
+	GeoIpLocations()
 }
