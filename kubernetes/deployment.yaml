@@ -13,12 +13,20 @@ spec:
       labels:
         app: api
     spec:
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: db-pvc
       containers:
         - name: api
           image: grimreapermortis/api-golang:0.0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 31337
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/postgresql/data
+              readOnly: false
           envFrom:
             - secretRef:
                 name: api-secrete
@@ -85,6 +93,9 @@ spec:
             - name: storage
               mountPath: /var/lib/postgresql/data
               readOnly: false
+          envFrom:
+            - secretRef:
+                name: api-secrete
           env:
             - name: POSTGRES_USER
               valueFrom:
