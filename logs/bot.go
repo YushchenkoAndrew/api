@@ -27,7 +27,7 @@ func SendLogs(message *models.LogMessage) {
 	hasher.Write([]byte(salt + config.ENV.BotKey))
 
 	var req *http.Request
-	if req, err = http.NewRequest("POST", "http://"+config.ENV.BotUrl+"/bot/logs/alert?key="+hex.EncodeToString(hasher.Sum(nil)), bytes.NewBuffer(body)); err != nil {
+	if req, err = http.NewRequest("POST", config.ENV.BotUrl+"/logs/alert?key="+hex.EncodeToString(hasher.Sum(nil)), bytes.NewBuffer(body)); err != nil {
 		fmt.Println("Ohh noo; Anyway")
 		return
 	}
