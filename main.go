@@ -12,7 +12,7 @@ func main() {
 	config.LoadEnv("./")
 
 	db.ConnectToDB()
-	db.MigrateTables(config.ENV.ForceMigrate)
+	db.MigrateTables()
 
 	db.ConnectToRedis()
 	db.RedisInitDefault()

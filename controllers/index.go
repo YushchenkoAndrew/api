@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -31,6 +32,59 @@ func (*IndexController) Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Ping{
 		Status:  "OK",
 		Message: "pong",
+	})
+}
+
+// @Summary Trace Ip :ip
+// @Accept json
+// @Produce application/json
+// @Produce application/xml
+// @Param ip path string true "Client IP"
+// @Success 200 {object} models.Success{result=[]models.GeoIpLocations}
+// @failure 429 {object} models.Error
+// @failure 400 {object} models.Error
+// @failure 500 {object} models.Error
+// @Router /trace/{ip} [get]
+func (*IndexController) TraceIp(c *gin.Context) {
+	var ip string
+	if ip = c.Param("ip"); ip == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect ip value")
+		return
+	}
+
+	key := "ip:" + ip
+	ctx := context.Background()
+	var location []models.GeoIpLocations
+
+	// Check if cache have requested data
+	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
+		json.Unmarshal([]byte(data), &location)
+		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
+	} else {
+
+		var block []models.GeoIpBlocks
+		if result := db.DB.Where("network >>= ?::inet", ip).Find(&block); result.Error != nil || len(block) == 0 {
+			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			go logs.DefaultLog("/controllers/index.go", result.Error)
+			return
+		}
+
+		if result := db.DB.Where("geoname_id = ?", block[0].GeonameId).Find(&location); result.Error != nil {
+			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+			go logs.DefaultLog("/controllers/index.go", result.Error)
+			return
+		}
+
+		// Encode json to str
+		if str, err := json.Marshal(&location); err == nil {
+			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
+		}
+	}
+
+	helper.ResHandler(c, http.StatusOK, models.Success{
+		Status: "OK",
+		Result: location,
+		Items:  int64(len(location)),
 	})
 }
 

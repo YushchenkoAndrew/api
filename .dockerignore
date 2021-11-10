@@ -1,4 +1,5 @@
 kubernetes/
+tmp/
 .env
 .gitignore
 .dockerignore

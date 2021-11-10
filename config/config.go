@@ -33,10 +33,9 @@ type EnvType struct {
 	Pepper string `mapstructure:"API_PEPPER"`
 
 	// Pagination setting
-	ForceMigrate bool  `mapstructure:"FORCE_MIGRATE"`
-	LiveTime     int64 `mapstructure:"LIVE_TIME"`
-	Items        int   `mapstructure:"ITEMS"`
-	Limit        int   `mapstructure:"LIMIT"`
+	LiveTime int64 `mapstructure:"LIVE_TIME"`
+	Items    int   `mapstructure:"ITEMS"`
+	Limit    int   `mapstructure:"LIMIT"`
 
 	// Rate Info
 	RateLimit int `mapstructure:"RATE_LIMIT"`
@@ -44,6 +43,10 @@ type EnvType struct {
 
 	BotUrl string `mapstructure:"BOT_URL"`
 	BotKey string `mapstructure:"BOT_KEY"`
+
+	// Migration Settings
+	ForceMigrate  bool   `mapstructure:"FORCE_MIGRATE"`
+	MigrationPath string `mapstructure:"MIGRATION_PATH"`
 }
 
 var ENV EnvType
