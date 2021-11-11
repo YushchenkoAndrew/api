@@ -3,7 +3,6 @@ package db
 import (
 	"api/config"
 	"api/models"
-	"fmt"
 )
 
 func GeoIpBlocks() {
@@ -17,7 +16,7 @@ func GeoIpBlocks() {
 	if DB.Model(&models.GeoIpBlocks{}).Count(&nSize); nSize == 0 {
 
 		// The most quick and easiest way !!!
-		DB.Exec(fmt.Sprintf("copy geo_ip_blocks from '%s/GeoLite2-Country-Blocks.csv' delimiter ',' csv header;", config.ENV.MigrationPath))
+		DB.Exec("copy geo_ip_blocks from '" + config.ENV.MigrationPath + "/GeoLite2-Country-Blocks.csv' delimiter ',' csv header;")
 		DB.Exec("CREATE INDEX geo_ip_blocks_network_idx ON geo_ip_blocks USING gist (network inet_ops);")
 	}
 }
