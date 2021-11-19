@@ -109,7 +109,7 @@ func (*IndexController) Login(c *gin.Context) {
 	pass := strings.Split(login.Pass, "$")
 
 	hasher := md5.New()
-	hasher.Write([]byte(config.ENV.Pepper + pass[0] + config.ENV.Pass))
+	hasher.Write([]byte(pass[0] + config.ENV.Pepper + config.ENV.Pass))
 
 	if len(pass) != 2 || !helper.ValidateStr(login.User, config.ENV.User) ||
 		!helper.ValidateStr(hex.EncodeToString(hasher.Sum(nil)), pass[1]) {
@@ -119,7 +119,7 @@ func (*IndexController) Login(c *gin.Context) {
 			Name:    "API",
 			Url:     "/api/refresh",
 			File:    "/controllers/index.go",
-			Message: "First rule of User Validation; It's not to tack about Users",
+			Message: "First rule of User Validation; It's not to talk about Users",
 		})
 		return
 	}
