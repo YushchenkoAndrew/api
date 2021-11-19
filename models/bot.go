@@ -8,3 +8,7 @@ type LogMessage struct {
 	Message string      `json:"message" xml:"message" binding:"required"`
 	Desc    interface{} `json:"desc" xml:"desc"`
 }
+
+type BotRedis struct {
+	Command string `json:"command" xml:"command" binding:"required"`
+}
