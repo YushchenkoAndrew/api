@@ -3,13 +3,13 @@ package models
 import "time"
 
 type File struct {
-	ID        uint32    `gorm:"primaryKey" json:"ID" xml:"ID"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"UpdatedAt" xml:"UpdatedAt" example:"2021-08-27T16:17:53.119571+03:00"`
-	Name      string    `gorm:"not null" json:"Name" xml:"Name" example:"index.js"`
-	Path      string    `json:"Path" xml:"Path" example:"/test"`
-	Type      string    `gorm:"not null" json:"Type" xml:"Type" example:"js"`
-	Role      string    `gorm:"not null" json:"Role" xml:"Role" example:"src"`
-	ProjectID uint32    `gorm:"foreignKey:ProjectID;not null" json:"ProjectID" xml:"ProjectID" example:"1"`
+	ID        uint32    `gorm:"primaryKey" json:"id" xml:"id"`
+	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at" xml:"updated_at" example:"2021-08-27T16:17:53.119571+03:00"`
+	Name      string    `gorm:"not null" json:"name" xml:"name" example:"index.js"`
+	Path      string    `json:"path" xml:"path" example:"/test"`
+	Type      string    `gorm:"not null" json:"type" xml:"type" example:"js"`
+	Role      string    `gorm:"not null" json:"role" xml:"role" example:"src"`
+	ProjectID uint32    `gorm:"foreignKey:ProjectID;not null" json:"project_id" xml:"project_id" example:"1"`
 	// Project   Project   `gorm:""`
 }
 
@@ -19,8 +19,8 @@ func (*File) TableName() string {
 
 type ReqFile struct {
 	// ID        uint32    `json:"id" xml:"id"`
-	Name string `json:"Name" xml:"Name"`
-	Path string `json:"Path" xml:"Path"`
-	Type string `json:"Type" xml:"Type"`
-	Role string `json:"Role" xml:"Role"`
+	Name string `json:"name" xml:"name"`
+	Path string `json:"path" xml:"path"`
+	Type string `json:"type" xml:"type"`
+	Role string `json:"role" xml:"role"`
 }

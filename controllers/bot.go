@@ -38,7 +38,7 @@ func (*BotController) Redis(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	res, err := db.Redis.Do(ctx, command...).Result()
+	res, err := db.Redis.Do(ctx, command...).StringSlice()
 
 	if err != nil {
 		c.JSON(http.StatusOK, models.DefultRes{

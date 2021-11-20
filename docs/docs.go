@@ -31,6 +31,58 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/bot/redis": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "Execute redis Command from request",
+                "parameters": [
+                    {
+                        "description": "Redis Command",
+                        "name": "model",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BotRedis"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DefultRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/file": {
             "get": {
                 "consumes": [
@@ -3208,6 +3260,68 @@ var doc = `{
                 }
             }
         },
+        "/trace/{ip}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "summary": "Trace Ip :ip",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client IP",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/models.Success"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "result": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.GeoIpLocations"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/world": {
             "get": {
                 "consumes": [
@@ -3892,6 +4006,39 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.BotRedis": {
+            "type": "object",
+            "required": [
+                "command"
+            ],
+            "properties": {
+                "command": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DefultRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "pong"
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[]"
+                    ]
+                },
+                "status": {
+                    "type": "string",
+                    "example": "OK"
+                }
+            }
+        },
         "models.Error": {
             "type": "object",
             "properties": {
@@ -3914,62 +4061,95 @@ var doc = `{
         "models.File": {
             "type": "object",
             "properties": {
-                "ID": {
+                "id": {
                     "type": "integer"
                 },
-                "Name": {
+                "name": {
                     "type": "string",
                     "example": "index.js"
                 },
-                "Path": {
+                "path": {
                     "type": "string",
                     "example": "/test"
                 },
-                "ProjectID": {
+                "project_id": {
                     "type": "integer",
                     "example": 1
                 },
-                "Role": {
+                "role": {
                     "type": "string",
                     "example": "src"
                 },
-                "Type": {
+                "type": {
                     "type": "string",
                     "example": "js"
                 },
-                "UpdatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2021-08-27T16:17:53.119571+03:00"
+                }
+            }
+        },
+        "models.GeoIpLocations": {
+            "type": "object",
+            "properties": {
+                "continent_code": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "continent_name": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "country_iso_code": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "country_name": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "geoname_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_in_european_union": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "locale_code": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },
         "models.Info": {
             "type": "object",
             "properties": {
-                "Clicks": {
+                "clicks": {
                     "type": "integer",
                     "example": 2
                 },
-                "Countries": {
+                "countries": {
                     "type": "string",
                     "example": "UK,US"
                 },
-                "CreatedAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2021-08-06"
                 },
-                "ID": {
+                "id": {
                     "type": "integer"
                 },
-                "Media": {
+                "media": {
                     "type": "integer",
                     "example": 3
                 },
-                "Views": {
+                "views": {
                     "type": "integer",
                     "example": 1
                 },
-                "Visitors": {
+                "visitors": {
                     "type": "integer",
                     "example": 4
                 }
@@ -3978,22 +4158,22 @@ var doc = `{
         "models.Link": {
             "type": "object",
             "properties": {
-                "ID": {
+                "id": {
                     "type": "integer"
                 },
-                "Link": {
+                "link": {
                     "type": "string",
                     "example": "https://github.com/YushchenkoAndrew/template"
                 },
-                "Name": {
+                "name": {
                     "type": "string",
                     "example": "main"
                 },
-                "ProjectID": {
+                "project_id": {
                     "type": "integer",
                     "example": 1
                 },
-                "UpdatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2021-08-27T16:17:53.119571+03:00"
                 }
@@ -4030,32 +4210,13 @@ var doc = `{
         "models.Project": {
             "type": "object",
             "properties": {
-                "CreatedAt": {
+                "created_at": {
                     "type": "string",
                     "example": "2021-08-06"
                 },
-                "Desc": {
+                "desc": {
                     "type": "string",
                     "example": "Take the blue pill and the sit will close, or take the red pill and I show how deep the rebbit hole goes"
-                },
-                "Flag": {
-                    "type": "string",
-                    "example": "js"
-                },
-                "ID": {
-                    "type": "integer"
-                },
-                "Name": {
-                    "type": "string",
-                    "example": "CodeRain"
-                },
-                "Note": {
-                    "type": "string",
-                    "example": "Creating a 'Code Rain' effect from Matrix. As funny joke you can put any text to display at the end."
-                },
-                "Title": {
-                    "type": "string",
-                    "example": "Code Rain"
                 },
                 "files": {
                     "type": "array",
@@ -4063,28 +4224,47 @@ var doc = `{
                         "$ref": "#/definitions/models.File"
                     }
                 },
+                "flag": {
+                    "type": "string",
+                    "example": "js"
+                },
+                "id": {
+                    "type": "integer"
+                },
                 "links": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Link"
                     }
+                },
+                "name": {
+                    "type": "string",
+                    "example": "CodeRain"
+                },
+                "note": {
+                    "type": "string",
+                    "example": "Creating a 'Code Rain' effect from Matrix. As funny joke you can put any text to display at the end."
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Code Rain"
                 }
             }
         },
         "models.ReqFile": {
             "type": "object",
             "properties": {
-                "Name": {
+                "name": {
                     "description": "ID        uint32    ` + "`" + `json:\"id\" xml:\"id\"` + "`" + `",
                     "type": "string"
                 },
-                "Path": {
+                "path": {
                     "type": "string"
                 },
-                "Role": {
+                "role": {
                     "type": "string"
                 },
-                "Type": {
+                "type": {
                     "type": "string"
                 }
             }
@@ -4092,20 +4272,20 @@ var doc = `{
         "models.ReqInfo": {
             "type": "object",
             "properties": {
-                "Clicks": {
+                "clicks": {
                     "type": "integer"
                 },
-                "Countries": {
+                "countries": {
                     "description": "ID        uint32    ` + "`" + `json:\"id\" xml:\"id\"` + "`" + `\nCreatedAt *time.Time ` + "`" + `json:\"CreatedAt\" xml:\"CreatedAt\"` + "`" + `",
                     "type": "string"
                 },
-                "Media": {
+                "media": {
                     "type": "integer"
                 },
-                "Views": {
+                "views": {
                     "type": "integer"
                 },
-                "Visitors": {
+                "visitors": {
                     "type": "integer"
                 }
             }
@@ -4113,10 +4293,10 @@ var doc = `{
         "models.ReqLink": {
             "type": "object",
             "properties": {
-                "Link": {
+                "link": {
                     "type": "string"
                 },
-                "Name": {
+                "name": {
                     "description": "ID        uint32    ` + "`" + `json:\"id\" xml:\"id\"` + "`" + `",
                     "type": "string"
                 }
@@ -4125,32 +4305,32 @@ var doc = `{
         "models.ReqProject": {
             "type": "object",
             "properties": {
-                "Desc": {
+                "desc": {
                     "type": "string"
                 },
-                "Files": {
+                "files": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.File"
                     }
                 },
-                "Flag": {
+                "flag": {
                     "type": "string"
                 },
-                "Links": {
+                "links": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Link"
                     }
                 },
-                "Name": {
+                "name": {
                     "description": "ID        uint32    ` + "`" + `json:\"id\" xml:\"id\"` + "`" + `",
                     "type": "string"
                 },
-                "Note": {
+                "note": {
                     "type": "string"
                 },
-                "Title": {
+                "title": {
                     "type": "string"
                 }
             }
@@ -4158,11 +4338,11 @@ var doc = `{
         "models.ReqWorld": {
             "type": "object",
             "properties": {
-                "Country": {
+                "country": {
                     "description": "ID        uint32\nUpdatedAt time.Time",
                     "type": "string"
                 },
-                "Visitors": {
+                "visitors": {
                     "type": "integer"
                 }
             }
@@ -4199,9 +4379,7 @@ var doc = `{
                     "type": "integer",
                     "example": 0
                 },
-                "result": {
-                    "type": "object"
-                },
+                "result": {},
                 "status": {
                     "type": "string",
                     "example": "OK"
@@ -4233,18 +4411,18 @@ var doc = `{
         "models.World": {
             "type": "object",
             "properties": {
-                "Country": {
+                "country": {
                     "type": "string",
                     "example": "UK"
                 },
-                "ID": {
+                "id": {
                     "type": "integer"
                 },
-                "UpdatedAt": {
+                "updated_at": {
                     "type": "string",
                     "example": "2021-08-27T16:17:53.119571+03:00"
                 },
-                "Visitors": {
+                "visitors": {
                     "type": "integer",
                     "example": 5
                 }
@@ -4311,5 +4489,5 @@ func (s *s) ReadDoc() string {
 }
 
 func init() {
-	swag.Register(swag.Name, &s{})
+	swag.Register("swagger", &s{})
 }

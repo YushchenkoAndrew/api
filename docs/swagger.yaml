@@ -1,5 +1,27 @@
 basePath: /api
 definitions:
+  models.BotRedis:
+    properties:
+      command:
+        type: string
+    required:
+    - command
+    type: object
+  models.DefultRes:
+    properties:
+      message:
+        example: pong
+        type: string
+      result:
+        example:
+        - '[]'
+        items:
+          type: string
+        type: array
+      status:
+        example: OK
+        type: string
+    type: object
   models.Error:
     properties:
       message:
@@ -15,64 +37,88 @@ definitions:
     type: object
   models.File:
     properties:
-      ID:
+      id:
         type: integer
-      Name:
+      name:
         example: index.js
         type: string
-      Path:
+      path:
         example: /test
         type: string
-      ProjectID:
+      project_id:
         example: 1
         type: integer
-      Role:
+      role:
         example: src
         type: string
-      Type:
+      type:
         example: js
         type: string
-      UpdatedAt:
+      updated_at:
         example: "2021-08-27T16:17:53.119571+03:00"
+        type: string
+    type: object
+  models.GeoIpLocations:
+    properties:
+      continent_code:
+        example: "1"
+        type: string
+      continent_name:
+        example: "1"
+        type: string
+      country_iso_code:
+        example: "1"
+        type: string
+      country_name:
+        example: "1"
+        type: string
+      geoname_id:
+        example: 1
+        type: integer
+      is_in_european_union:
+        example: true
+        type: boolean
+      locale_code:
+        example: "1"
         type: string
     type: object
   models.Info:
     properties:
-      Clicks:
+      clicks:
         example: 2
         type: integer
-      Countries:
+      countries:
         example: UK,US
         type: string
-      CreatedAt:
+      created_at:
         example: "2021-08-06"
         type: string
-      ID:
+      id:
         type: integer
-      Media:
+      media:
         example: 3
         type: integer
-      Views:
+      views:
         example: 1
         type: integer
-      Visitors:
+      visitors:
         example: 4
         type: integer
     type: object
   models.Link:
     properties:
-      ID:
+      id:
         type: integer
-      Link:
+      link:
         example: https://github.com/YushchenkoAndrew/template
         type: string
-      Name:
+      name:
         example: main
         type: string
-      ProjectID:
+      project_id:
         example: 1
         type: integer
-      UpdatedAt:
+      updated_at:
         example: "2021-08-27T16:17:53.119571+03:00"
         type: string
     type: object
@@ -97,103 +143,103 @@ definitions:
     type: object
   models.Project:
     properties:
-      CreatedAt:
+      created_at:
         example: "2021-08-06"
         type: string
-      Desc:
+      desc:
         example: Take the blue pill and the sit will close, or take the red pill and
           I show how deep the rebbit hole goes
-        type: string
-      Flag:
-        example: js
-        type: string
-      ID:
-        type: integer
-      Name:
-        example: CodeRain
-        type: string
-      Note:
-        example: Creating a 'Code Rain' effect from Matrix. As funny joke you can
-          put any text to display at the end.
-        type: string
-      Title:
-        example: Code Rain
         type: string
       files:
         items:
           $ref: '#/definitions/models.File'
         type: array
+      flag:
+        example: js
+        type: string
+      id:
+        type: integer
       links:
         items:
           $ref: '#/definitions/models.Link'
         type: array
+      name:
+        example: CodeRain
+        type: string
+      note:
+        example: Creating a 'Code Rain' effect from Matrix. As funny joke you can
+          put any text to display at the end.
+        type: string
+      title:
+        example: Code Rain
+        type: string
     type: object
   models.ReqFile:
     properties:
-      Name:
+      name:
         description: ID        uint32    `json:"id" xml:"id"`
         type: string
-      Path:
+      path:
         type: string
-      Role:
+      role:
         type: string
-      Type:
+      type:
         type: string
     type: object
   models.ReqInfo:
     properties:
-      Clicks:
+      clicks:
         type: integer
-      Countries:
+      countries:
         description: |-
           ID        uint32    `json:"id" xml:"id"`
           CreatedAt *time.Time `json:"CreatedAt" xml:"CreatedAt"`
         type: string
-      Media:
+      media:
         type: integer
-      Views:
+      views:
         type: integer
-      Visitors:
+      visitors:
         type: integer
     type: object
   models.ReqLink:
     properties:
-      Link:
+      link:
         type: string
-      Name:
+      name:
         description: ID        uint32    `json:"id" xml:"id"`
         type: string
     type: object
   models.ReqProject:
     properties:
-      Desc:
+      desc:
         type: string
-      Files:
+      files:
         items:
           $ref: '#/definitions/models.File'
         type: array
-      Flag:
+      flag:
         type: string
-      Links:
+      links:
         items:
           $ref: '#/definitions/models.Link'
         type: array
-      Name:
+      name:
         description: ID        uint32    `json:"id" xml:"id"`
         type: string
-      Note:
+      note:
         type: string
-      Title:
+      title:
         type: string
     type: object
   models.ReqWorld:
     properties:
-      Country:
+      country:
         description: |-
           ID        uint32
           UpdatedAt time.Time
         type: string
-      Visitors:
+      visitors:
         type: integer
     type: object
   models.StatInfo:
@@ -218,8 +264,7 @@ definitions:
       page:
         example: 0
         type: integer
-      result:
-        type: object
+      result: {}
       status:
         example: OK
         type: string
@@ -241,15 +286,15 @@ definitions:
     type: object
   models.World:
     properties:
-      Country:
+      country:
         example: UK
         type: string
-      ID:
+      id:
         type: integer
-      UpdatedAt:
+      updated_at:
         example: "2021-08-27T16:17:53.119571+03:00"
         type: string
-      Visitors:
+      visitors:
         example: 5
         type: integer
     type: object
@@ -266,6 +311,40 @@ info:
   title: Gin API
   version: "1.0"
 paths:
+  /bot/redis:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Redis Command
+        in: body
+        name: model
+        required: true
+        schema:
+          $ref: '#/definitions/models.BotRedis'
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DefultRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Execute redis Command from request
+      tags:
+      - Bot
   /file:
     delete:
       consumes:
@@ -2234,6 +2313,44 @@ paths:
           schema:
             $ref: '#/definitions/models.Error'
       summary: Refresh access token
+  /trace/{ip}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Client IP
+        in: path
+        name: ip
+        required: true
+        type: string
+      produces:
+      - application/json
+      - application/xml
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.Success'
+            - properties:
+                result:
+                  items:
+                    $ref: '#/definitions/models.GeoIpLocations'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Trace Ip :ip
   /world:
     delete:
       consumes:

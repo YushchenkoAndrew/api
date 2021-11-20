@@ -6,7 +6,7 @@ type Ping struct {
 }
 
 type DefultRes struct {
-	Status  string      `json:"status" example:"OK"`
-	Message string      `json:"message" example:"pong"`
-	Result  interface{} `json:"result" example:"[]"`
+	Status  string   `json:"status" example:"OK"`
+	Message string   `json:"message" example:"pong"`
+	Result  []string `json:"result" example:"[]"`
 }
