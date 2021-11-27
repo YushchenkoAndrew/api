@@ -379,7 +379,7 @@ func (o *WorldController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.World{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -439,7 +439,7 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.World{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})

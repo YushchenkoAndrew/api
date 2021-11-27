@@ -400,7 +400,7 @@ func (o *FileController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.File{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -461,7 +461,7 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.File{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})

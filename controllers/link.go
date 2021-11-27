@@ -385,7 +385,7 @@ func (o *LinkController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.Link{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -445,7 +445,7 @@ func (o *LinkController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.Link{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})

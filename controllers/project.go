@@ -455,7 +455,7 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.Project{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -518,7 +518,7 @@ func (o *ProjectController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     [1]models.Project{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
