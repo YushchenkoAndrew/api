@@ -15,7 +15,7 @@ import (
 
 func Limit() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ip := c.ClientIP()
+		ip := "IP:" + c.ClientIP()
 		ctx := context.Background()
 
 		rate, err := db.Redis.Get(ctx, ip).Int()
@@ -32,7 +32,7 @@ func Limit() gin.HandlerFunc {
 				Name:    "API",
 				Url:     "/api/refresh",
 				File:    "/middleware/limit.go",
-				Message: "Jeez man calm down, you've had inaff of traffic, I'm blocking you; ip=" + ip,
+				Message: "Jeez man calm down, you've had inaff of traffic, I'm blocking you; " + ip,
 			})
 		}
 	}
