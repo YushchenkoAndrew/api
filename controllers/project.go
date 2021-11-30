@@ -570,6 +570,7 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 
 	if len(project) == 0 {
 		helper.ErrHandler(c, http.StatusRequestedRangeNotSatisfiable, "Such record doesn't exist within db")
+		return
 	}
 
 	// Delete in both place Files & Project
