@@ -18,6 +18,7 @@ type BotController struct{}
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
+// @Security BearerAuth
 // @Param model body models.BotRedis true "Redis Command"
 // @Success 200 {object} models.DefultRes
 // @failure 400 {object} models.Error
