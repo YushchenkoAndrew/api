@@ -50,6 +50,7 @@ tmp/
 # Test binary, built with `go test -c`
 *.test
 secrete.yaml
+k3s.yaml
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

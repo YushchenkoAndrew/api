@@ -4,3 +4,4 @@ tmp/
 .gitignore
 .dockerignore
 Dockerfile
+k3s.yaml

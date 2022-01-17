@@ -61,7 +61,6 @@ require (
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
-	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4 // indirect
 	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.7 // indirect
@@ -78,4 +77,7 @@ require (
 	gorm.io/driver/postgres v1.2.2
 	gorm.io/driver/sqlite v1.1.4 // indirect
 	gorm.io/gorm v1.22.3
+	k8s.io/api v0.23.1 // indirect
+	k8s.io/apimachinery v0.23.1 // indirect
+	k8s.io/client-go v0.23.1 // indirect
 )

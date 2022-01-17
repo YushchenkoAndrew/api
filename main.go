@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	config.LoadEnv("./")
+	config.Init()
 
 	db.ConnectToDB()
 	db.MigrateTables()
