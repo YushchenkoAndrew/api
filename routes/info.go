@@ -3,6 +3,7 @@ package routes
 import (
 	c "api/controllers"
 	"api/middleware"
+	sub "api/routes/info"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,4 +25,8 @@ func Info(rg *gin.RouterGroup) {
 
 	auth.DELETE("", cInfo.DeleteAll)
 	auth.DELETE("/:id", cInfo.DeleteOne)
+
+	// Sub routes
+	sub.Sum(route)
+	sub.Range(route)
 }

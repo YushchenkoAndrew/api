@@ -3,7 +3,6 @@ package routes
 import (
 	"api/config"
 	"api/middleware"
-	info "api/routes/info"
 
 	_ "api/docs"
 
@@ -39,7 +38,5 @@ func Init(rg *gin.Engine) {
 	File(route)
 	Link(route)
 	Bot(route)
-
-	// Init SubRoutes
-	info.Init(route)
+	K3s(route)
 }
