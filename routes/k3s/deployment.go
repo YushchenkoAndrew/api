@@ -11,7 +11,7 @@ func Deployment(rg *gin.RouterGroup) {
 	auth := rg.Group("/deployment", middleware.Auth())
 	cDeployment := c.DeploymentController{}
 
-	auth.POST("/", cDeployment.Create)
+	auth.POST("/:namespace", cDeployment.Create)
 
 	auth.GET("/", cDeployment.ReadAll)
 	auth.GET("/:name", cDeployment.ReadOne)

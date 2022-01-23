@@ -16,5 +16,10 @@ func K3s(rg *gin.RouterGroup) {
 	auth.POST("/subscribe/:id", cK3s.Subscribe)
 	auth.DELETE("/subscribe/:id", cK3s.Unsubscribe)
 
+	// Subroutes
+	sub.Namespace(route)
 	sub.Deployment(route)
+	sub.Service(route)
+	sub.Pods(route)
+	sub.Ingress(route)
 }

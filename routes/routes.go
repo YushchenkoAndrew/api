@@ -2,9 +2,8 @@ package routes
 
 import (
 	"api/config"
-	"api/middleware"
-
 	_ "api/docs"
+	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )

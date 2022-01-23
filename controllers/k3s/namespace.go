@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	coreV1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -21,15 +21,15 @@ type NamespaceController struct{}
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Project primaray id"
-// @Param model body coreV1.Namespace true "Link info"
-// @Success 201 {object} models.Success{result=[]coreV1.Namespace}
+// @Param model body v1.Namespace true "Link info"
+// @Success 201 {object} models.Success{result=[]v1.Namespace}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/namespace [post]
 func (*NamespaceController) Create(c *gin.Context) {
-	var body coreV1.Namespace
+	var body v1.Namespace
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body is not setted")
 		return
@@ -39,11 +39,12 @@ func (*NamespaceController) Create(c *gin.Context) {
 	result, err := config.K3s.CoreV1().Namespaces().Create(ctx, &body, metaV1.CreateOptions{})
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status: "OK",
-		Result: [1]coreV1.Namespace{*result},
+		Result: &[1]v1.Namespace{*result},
 		Items:  1,
 	})
 }
@@ -55,7 +56,7 @@ func (*NamespaceController) Create(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param name query string false "Specified name of Namespace"
-// @Success 200 {object} models.Success{result=[]coreV1.Namespace}
+// @Success 200 {object} models.Success{result=[]v1.Namespace}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
@@ -78,7 +79,7 @@ func (*NamespaceController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status: "OK",
-		Result: [1]coreV1.Namespace{*result},
+		Result: &[1]v1.Namespace{*result},
 		Items:  1,
 	})
 }
@@ -89,7 +90,7 @@ func (*NamespaceController) ReadOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Success 200 {object} models.Success{result=[]coreV1.Namespace}
+// @Success 200 {object} models.Success{result=[]v1.Namespace}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
@@ -105,7 +106,7 @@ func (*NamespaceController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status: "OK",
-		Result: result.Items,
+		Result: &result.Items,
 		Items:  int64(len(result.Items)),
 	})
 }
