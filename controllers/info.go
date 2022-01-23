@@ -113,7 +113,7 @@ func (o *InfoController) Create(c *gin.Context) {
 	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -193,7 +193,7 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -250,7 +250,7 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 	go helper.RedisAdd(&ctx, "nInfo", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -306,7 +306,7 @@ func (o *InfoController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     info,
+		Result:     &info,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -371,7 +371,7 @@ func (o *InfoController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     info,
+		Result:     &info,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -429,7 +429,7 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.Info{model},
+		Result:     &[1]models.Info{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -490,7 +490,7 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.Info{model},
+		Result:     &[1]models.Info{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -548,7 +548,7 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 	go db.Redis.Del(ctx, "Info:Sum")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -605,7 +605,7 @@ func (o *InfoController) DeleteAll(c *gin.Context) {
 	go helper.RedisSub(&ctx, "nInfo", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})

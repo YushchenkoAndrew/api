@@ -196,7 +196,7 @@ func (o *ProjectController) CreateOne(c *gin.Context) {
 	go db.Redis.Incr(ctx, "nProject")
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -265,7 +265,7 @@ func (o *ProjectController) CreateAll(c *gin.Context) {
 	go helper.RedisAdd(&ctx, "nProject", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -321,7 +321,7 @@ func (*ProjectController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     project,
+		Result:     &project,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -393,7 +393,7 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     project,
+		Result:     &project,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -455,7 +455,7 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.Project{model},
+		Result:     &[1]models.Project{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -518,7 +518,7 @@ func (o *ProjectController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.Project{model},
+		Result:     &[1]models.Project{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -606,7 +606,7 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 	go db.Redis.Decr(ctx, "nProject")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -693,7 +693,7 @@ func (o *ProjectController) DeleteAll(c *gin.Context) {
 	go helper.RedisSub(&ctx, "nProject", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})

@@ -124,7 +124,7 @@ func (o *LinkController) CreateOne(c *gin.Context) {
 	go db.Redis.Incr(ctx, "nLink")
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -207,7 +207,7 @@ func (o *LinkController) CreateAll(c *gin.Context) {
 	go helper.RedisAdd(&ctx, "nLink", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -263,7 +263,7 @@ func (*LinkController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     links,
+		Result:     &links,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -328,7 +328,7 @@ func (o *LinkController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     links,
+		Result:     &links,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -385,7 +385,7 @@ func (o *LinkController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.Link{model},
+		Result:     &[1]models.Link{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -445,7 +445,7 @@ func (o *LinkController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.Link{model},
+		Result:     &[1]models.Link{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -502,7 +502,7 @@ func (*LinkController) DeleteOne(c *gin.Context) {
 	go db.Redis.Decr(ctx, "nLink")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -558,7 +558,7 @@ func (o *LinkController) DeleteAll(c *gin.Context) {
 	go helper.RedisSub(&ctx, "nFile", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})

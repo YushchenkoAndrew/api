@@ -68,7 +68,7 @@ func (o *SumController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []models.StatInfo{stat},
+		Result:     &[]models.StatInfo{stat},
 		Items:      1,
 		TotalItems: items,
 	})

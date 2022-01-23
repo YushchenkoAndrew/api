@@ -80,7 +80,7 @@ func (*RangeController) Read(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,

@@ -106,7 +106,7 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -192,7 +192,7 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 	go helper.RedisAdd(&ctx, "nWorld", int64(len(body)))
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -248,7 +248,7 @@ func (*WorldController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -322,7 +322,7 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -379,7 +379,7 @@ func (o *WorldController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.World{model},
+		Result:     &[1]models.World{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -439,7 +439,7 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.World{model},
+		Result:     &[1]models.World{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -496,7 +496,7 @@ func (*WorldController) DeleteOne(c *gin.Context) {
 	go db.Redis.Decr(ctx, "nWorld")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -552,7 +552,7 @@ func (o *WorldController) DeleteAll(c *gin.Context) {
 	go helper.RedisSub(&ctx, "nWorld", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})

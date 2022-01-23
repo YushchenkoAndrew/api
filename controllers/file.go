@@ -137,7 +137,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 	go db.Redis.Incr(ctx, "nFile")
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -220,7 +220,7 @@ func (o *FileController) CreateAll(c *gin.Context) {
 	go helper.RedisAdd(&ctx, "nFile", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status:     "OK",
-		Result:     model,
+		Result:     &model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -276,7 +276,7 @@ func (*FileController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     files,
+		Result:     &files,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -343,7 +343,7 @@ func (o *FileController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     files,
+		Result:     &files,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -400,7 +400,7 @@ func (o *FileController) UpdateOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.File{model},
+		Result:     &[1]models.File{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -461,7 +461,7 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     [1]models.File{model},
+		Result:     &[1]models.File{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -518,7 +518,7 @@ func (*FileController) DeleteOne(c *gin.Context) {
 	go db.Redis.Decr(ctx, "nFile")
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -575,7 +575,7 @@ func (o *FileController) DeleteAll(c *gin.Context) {
 	go helper.RedisSub(&ctx, "nFile", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status:     "OK",
-		Result:     []string{},
+		Result:     &[]string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})
