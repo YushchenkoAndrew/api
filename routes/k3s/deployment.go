@@ -13,6 +13,6 @@ func Deployment(rg *gin.RouterGroup) {
 
 	auth.POST("/:namespace", cDeployment.Create)
 
-	auth.GET("/", cDeployment.ReadAll)
+	auth.GET("", cDeployment.ReadAll)
 	auth.GET("/:name", cDeployment.ReadOne)
 }

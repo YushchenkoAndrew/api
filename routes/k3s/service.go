@@ -13,6 +13,6 @@ func Service(rg *gin.RouterGroup) {
 
 	auth.POST("/:namespace", cService.Create)
 
-	auth.GET("/", cService.ReadAll)
+	auth.GET("", cService.ReadAll)
 	auth.GET("/:name", cService.ReadOne)
 }

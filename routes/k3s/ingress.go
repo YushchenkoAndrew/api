@@ -13,6 +13,6 @@ func Ingress(rg *gin.RouterGroup) {
 
 	auth.POST("/:namespace", cIngress.Create)
 
-	auth.GET("/", cIngress.ReadAll)
+	auth.GET("", cIngress.ReadAll)
 	auth.GET("/:name", cIngress.ReadOne)
 }

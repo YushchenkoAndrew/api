@@ -11,8 +11,8 @@ func Namespace(rg *gin.RouterGroup) {
 	auth := rg.Group("/namespace", middleware.Auth())
 	cNamespace := c.NamespaceController{}
 
-	auth.POST("/", cNamespace.Create)
+	auth.POST("", cNamespace.Create)
 
-	auth.GET("/", cNamespace.ReadAll)
+	auth.GET("", cNamespace.ReadAll)
 	auth.GET("/:name", cNamespace.ReadOne)
 }

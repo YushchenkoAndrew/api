@@ -45,6 +45,7 @@ func (*ServiceController) Create(c *gin.Context) {
 	result, err := config.K3s.CoreV1().Services(namespace).Create(ctx, &body, metaV1.CreateOptions{})
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	helper.ResHandler(c, http.StatusCreated, models.Success{

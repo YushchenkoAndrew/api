@@ -11,9 +11,9 @@ func Pods(rg *gin.RouterGroup) {
 	auth := rg.Group("/pods", middleware.Auth())
 	cPods := c.PodsController{}
 
-	auth.POST("/:namespace", cPods.Create)
+	auth.POST("/:name", cPods.Exec)
 
-	auth.GET("/", cPods.ReadAll)
+	auth.GET("", cPods.ReadAll)
 	auth.GET("/:name", cPods.ReadOne)
 
 	// Subroutes 'metrics'

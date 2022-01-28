@@ -11,28 +11,29 @@ import (
 )
 
 var K3s *kubernetes.Clientset
+var K3sConfig *rest.Config
 var Metrics *metrics.Clientset
 
 func LoadK3s() {
-	var config *rest.Config
+	// var config *rest.Config
 	var err error
 
 	if os.Getenv("GIN_MODE") == "release" {
-		config, err = rest.InClusterConfig()
+		K3sConfig, err = rest.InClusterConfig()
 	} else {
 		kubeConfig := flag.String("kubeconfig", "./k3s.yaml", "kubeconfig file location")
-		config, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
+		K3sConfig, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
 	}
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	if K3s, err = kubernetes.NewForConfig(config); err != nil {
+	if K3s, err = kubernetes.NewForConfig(K3sConfig); err != nil {
 		panic(err.Error())
 	}
 
-	if Metrics, err = metrics.NewForConfig(config); err != nil {
+	if Metrics, err = metrics.NewForConfig(K3sConfig); err != nil {
 		panic(err.Error())
 	}
 }

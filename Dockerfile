@@ -11,6 +11,11 @@ RUN go mod download
 
 # Build
 COPY . ./
+
+# Update docs
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN swag init -g ./main.go --parseDependency
+
 RUN go build -o ./api ./main.go
 
 # Create final image

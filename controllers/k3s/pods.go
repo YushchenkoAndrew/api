@@ -3,6 +3,7 @@ package k3s
 import (
 	"api/config"
 	"api/helper"
+	"api/logs"
 	"api/models"
 	"context"
 	"net/http"
@@ -10,48 +11,82 @@ import (
 	"github.com/gin-gonic/gin"
 	v1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/remotecommand"
 	metricsV1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
 type PodsController struct{}
 
 // @Tags K3s
-// @Summary Create Service
+// @Summary Exec command inside Pod
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
 // @Param namespace path string true "Namespace name"
-// @Param model body v1.Service true "Deployment config file"
+// @Param model body string true "Deployment config file"
 // @Success 201 {object} models.Success{result=[]v1.Service}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service/{namespace} [post]
-func (*PodsController) Create(c *gin.Context) {
-	var namespace = c.Param("namespace")
-	if namespace == "" {
+// @Router /k3s/service/{name} [post]
+func (*PodsController) Exec(c *gin.Context) {
+	var name string
+	var namespace string
+
+	name = c.Param("name")
+	if name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Namespace name shouldn't be empty")
 		return
 	}
 
-	var body v1.Pod
-	if err := c.ShouldBind(&body); err != nil {
-		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body is not setted")
+	if namespace = c.DefaultQuery("namespace", ""); namespace == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Namespace shouldn't be empty")
 		return
 	}
 
-	ctx := context.Background()
-	result, err := config.K3s.CoreV1().Pods(namespace).Create(ctx, &body, metaV1.CreateOptions{})
+	cmd, err := c.GetRawData()
+	if err != nil {
+		helper.ErrHandler(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	req := config.K3s.CoreV1().RESTClient().Post().Namespace(namespace).Resource("pods").Name(name).SubResource("exec").VersionedParams(&v1.PodExecOptions{
+		Command: []string{"sh", "-c", string(cmd)},
+		Stdout:  true,
+		Stderr:  true,
+		TTY:     true,
+	}, scheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(config.K3sConfig, "POST", req.URL())
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	outWriter := helper.StreamWriter{}
+	errWriter := helper.StreamWriter{}
+	err = exec.Stream(remotecommand.StreamOptions{
+		Stdout: &outWriter,
+		Stderr: &errWriter,
+	})
+
+	if err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if len(errWriter.Result) != 0 {
+		logs.DefaultLog("containers/k3s/pods", string(errWriter.Result))
+		helper.ErrHandler(c, http.StatusInternalServerError, string(errWriter.Result))
+		return
 	}
 
 	helper.ResHandler(c, http.StatusCreated, models.Success{
 		Status: "OK",
-		Result: &[1]v1.Pod{*result},
-		Items:  1,
+		Result: string(outWriter.Result),
 	})
 }
 
