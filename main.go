@@ -12,7 +12,7 @@ import (
 // @version 1.0
 // @description Remake of my previous attampted on creating API with Node.js
 
-// @contact.name API Support
+// @contact.name API Author
 // @contact.url https://mortis-grimreaper.ddns.net/projects
 // @contact.email AndrewYushchenko@gmail.com
 

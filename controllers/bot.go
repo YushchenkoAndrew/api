@@ -50,7 +50,7 @@ func (*BotController) Redis(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.DefultRes{
-		Status:  "ERR",
+		Status:  "OK",
 		Message: "Success",
 		Result:  res,
 	})
