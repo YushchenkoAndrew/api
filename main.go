@@ -3,7 +3,12 @@ package main
 import (
 	"api/config"
 	"api/db"
+	"api/interfaces"
+	"api/middleware"
 	"api/routes"
+	"api/routes/info"
+	"api/routes/k3s"
+	"api/routes/k3s/pods"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,7 +40,31 @@ func main() {
 	db.RedisInitDefault()
 
 	r := gin.Default()
-	routes.Init(r)
+	rg := r.Group(config.ENV.BasePath, middleware.Limit())
+	router := routes.NewIndexRouter(rg, &[]interfaces.Router{
+		routes.NewSwaggerRouter(rg),
+		routes.NewWorldRouter(rg),
+		routes.NewProjectRouter(rg),
+		routes.NewFileRouter(rg),
+		routes.NewLinkRouter(rg),
+		routes.NewBotRouter(rg),
 
+		routes.NewInfoRouter(rg, []func(*gin.RouterGroup) interfaces.Router{
+			info.NewSumRouterFactory(),
+			info.NewRangeRouterFactory(),
+		}),
+
+		routes.NewK3sRouter(rg, []func(*gin.RouterGroup) interfaces.Router{
+			k3s.NewDeploymentRouterFactory(),
+			k3s.NewIngressRouterFactory(),
+			k3s.NewPodsRouterFactory([]func(*gin.RouterGroup) interfaces.Router{
+				pods.NewMetricsRouterFactory(),
+			}),
+			k3s.NewNamespaceRouterFactory(),
+			k3s.NewServiceRouterFactory(),
+		}),
+	})
+
+	router.Init()
 	r.Run(config.ENV.Host + ":" + config.ENV.Port)
 }

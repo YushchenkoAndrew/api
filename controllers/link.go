@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/logs"
 	"api/models"
 	"context"
@@ -16,9 +17,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type LinkController struct{}
+type linkController struct{}
 
-func (*LinkController) filterQuery(c *gin.Context) (*gorm.DB, string) {
+func NewLinkController() interfaces.Default {
+	return &linkController{}
+}
+
+func (*linkController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	sKeys := ""
 	result := db.DB
 	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
@@ -39,12 +44,12 @@ func (*LinkController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*LinkController) parseBody(body *models.ReqLink, model *models.Link) {
+func (*linkController) parseBody(body *models.ReqLink, model *models.Link) {
 	model.Name = body.Name
 	model.Link = body.Link
 }
 
-func (*LinkController) isExist(id int, body *models.ReqLink) bool {
+func (*linkController) isExist(id int, body *models.ReqLink) bool {
 	var model []models.Link
 	res := db.DB.Where("project_id = ? AND name = ? AND Link = ?", id, body.Name, body.Link).Find(&model)
 	return !(res.RowsAffected == 0)
@@ -65,7 +70,7 @@ func (*LinkController) isExist(id int, body *models.ReqLink) bool {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/{id} [post]
-func (o *LinkController) CreateOne(c *gin.Context) {
+func (o *linkController) CreateOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect project id param")
@@ -145,7 +150,7 @@ func (o *LinkController) CreateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/list/{id} [post]
-func (o *LinkController) CreateAll(c *gin.Context) {
+func (o *linkController) CreateAll(c *gin.Context) {
 	var err error
 	var id int
 	var body []models.ReqLink
@@ -224,7 +229,7 @@ func (o *LinkController) CreateAll(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/{id} [get]
-func (*LinkController) ReadOne(c *gin.Context) {
+func (*linkController) ReadOne(c *gin.Context) {
 	var id int
 	var links []models.Link
 
@@ -284,7 +289,7 @@ func (*LinkController) ReadOne(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link [get]
-func (o *LinkController) ReadAll(c *gin.Context) {
+func (o *linkController) ReadAll(c *gin.Context) {
 	var links []models.Link
 	ctx := context.Background()
 
@@ -351,7 +356,7 @@ func (o *LinkController) ReadAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/{id} [put]
-func (o *LinkController) UpdateOne(c *gin.Context) {
+func (o *linkController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqLink
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
@@ -408,7 +413,7 @@ func (o *LinkController) UpdateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link [put]
-func (o *LinkController) UpdateAll(c *gin.Context) {
+func (o *linkController) UpdateAll(c *gin.Context) {
 	var body models.ReqLink
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -465,7 +470,7 @@ func (o *LinkController) UpdateAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/{id} [delete]
-func (*LinkController) DeleteOne(c *gin.Context) {
+func (*linkController) DeleteOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
@@ -524,7 +529,7 @@ func (*LinkController) DeleteOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link [delete]
-func (o *LinkController) DeleteAll(c *gin.Context) {
+func (o *linkController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
 

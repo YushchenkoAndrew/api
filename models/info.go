@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Info struct {
-	ID        uint32    `gorm:"primaryKey" json:"id" xml:"id"`
+	ID        uint32    `gorm:"type:bigint;primary_key,AUTO_INCREMENT" json:"id" xml:"id"`
 	CreatedAt time.Time `gorm:"default:CURRENT_DATE;unique" json:"created_at" xml:"created_at" example:"2021-08-06"`
 	Countries string    `json:"countries" xml:"contries" example:"UK,US"`
 	Views     uint16    `gorm:"default:0" json:"views" xml:"views" example:"1"`

@@ -3,6 +3,7 @@ package k3s
 import (
 	"api/config"
 	"api/helper"
+	"api/interfaces"
 	"api/models"
 	"context"
 	"net/http"
@@ -12,9 +13,15 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type DeploymentController struct{}
+type deploymentController struct{}
 
-// @Tags K3s
+func NewDeploymentController() interfaces.Default {
+	return &deploymentController{}
+}
+
+func (*deploymentController) CreateAll(c *gin.Context) {}
+
+// @Tags K3s/Deployment
 // @Summary Create Deployment
 // @Accept json
 // @Produce application/json
@@ -28,7 +35,7 @@ type DeploymentController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/deployment/{namespace} [post]
-func (*DeploymentController) Create(c *gin.Context) {
+func (*deploymentController) CreateOne(c *gin.Context) {
 	var namespace = c.Param("namespace")
 	if namespace == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Namespace name shouldn't be empty")
@@ -69,7 +76,7 @@ func (*DeploymentController) Create(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/deployment/{name} [get]
-func (*DeploymentController) ReadOne(c *gin.Context) {
+func (*deploymentController) ReadOne(c *gin.Context) {
 	var name string
 
 	if name = c.Param("name"); name == "" {
@@ -104,7 +111,7 @@ func (*DeploymentController) ReadOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/deployment [get]
-func (*DeploymentController) ReadAll(c *gin.Context) {
+func (*deploymentController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
 	result, err := config.K3s.AppsV1().Deployments(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
 
@@ -119,3 +126,8 @@ func (*DeploymentController) ReadAll(c *gin.Context) {
 		Items:  int64(len(result.Items)),
 	})
 }
+
+func (*deploymentController) UpdateAll(c *gin.Context) {}
+func (*deploymentController) UpdateOne(c *gin.Context) {}
+func (*deploymentController) DeleteAll(c *gin.Context) {}
+func (*deploymentController) DeleteOne(c *gin.Context) {}

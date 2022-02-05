@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/logs"
 	"api/middleware"
 	"api/models"
@@ -20,7 +21,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type IndexController struct{}
+type indexController struct{}
+
+func NewIndexController() interfaces.Index {
+	return &indexController{}
+}
 
 // @Summary Ping/Pong
 // @Accept json
@@ -28,7 +33,7 @@ type IndexController struct{}
 // @Success 200 {object} models.Ping
 // @failure 429 {object} models.Error
 // @Router /ping [get]
-func (*IndexController) Ping(c *gin.Context) {
+func (*indexController) Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Ping{
 		Status:  "OK",
 		Message: "pong",
@@ -45,7 +50,7 @@ func (*IndexController) Ping(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /trace/{ip} [get]
-func (*IndexController) TraceIp(c *gin.Context) {
+func (*indexController) TraceIp(c *gin.Context) {
 	var ip string
 	if ip = c.Param("ip"); ip == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect ip value")
@@ -99,7 +104,7 @@ func (*IndexController) TraceIp(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /login [post]
-func (*IndexController) Login(c *gin.Context) {
+func (*indexController) Login(c *gin.Context) {
 	var login models.Login
 	if err := c.ShouldBind(&login); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body")
@@ -153,7 +158,7 @@ func (*IndexController) Login(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /refresh [post]
-func (*IndexController) Refresh(c *gin.Context) {
+func (*indexController) Refresh(c *gin.Context) {
 	var tokens models.Tokens
 	if err := c.ShouldBind(&tokens); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Refresh token not specified")

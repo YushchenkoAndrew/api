@@ -2,21 +2,43 @@ package k3s
 
 import (
 	c "api/controllers/k3s"
+	"api/interfaces"
+	"api/interfaces/k3s"
 	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Pods(rg *gin.RouterGroup) {
-	auth := rg.Group("/pods", middleware.Auth())
-	cPods := c.PodsController{}
+type podsRouter struct {
+	auth      *gin.RouterGroup
+	pods      k3s.Pods
+	subRoutes *[]interfaces.Router
+}
 
-	auth.POST("/:name", cPods.Exec)
+func NewPodsRouterFactory(handlers []func(*gin.RouterGroup) interfaces.Router) func(*gin.RouterGroup) interfaces.Router {
+	return func(rg *gin.RouterGroup) interfaces.Router {
+		route := rg.Group("/pods")
 
-	auth.GET("", cPods.ReadAll)
-	auth.GET("/:name", cPods.ReadOne)
+		var subRoutes []interfaces.Router
+		for _, handler := range handlers {
+			subRoutes = append(subRoutes, handler(route))
+		}
 
-	// Subroutes 'metrics'
-	auth.GET("/metrics", cPods.ReadMetricsAll)
-	auth.GET("/metrics/:name", cPods.ReadMetricsOne)
+		return &podsRouter{
+			auth:      rg.Group("/pods", middleware.Auth()),
+			pods:      c.NewPodsController(),
+			subRoutes: &subRoutes,
+		}
+	}
+}
+
+func (c *podsRouter) Init() {
+	c.auth.POST("/:name", c.pods.Exec)
+
+	c.auth.GET("", c.pods.ReadAll)
+	c.auth.GET("/:name", c.pods.ReadOne)
+
+	for _, route := range *c.subRoutes {
+		route.Init()
+	}
 }

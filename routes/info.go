@@ -2,31 +2,48 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/interfaces"
 	"api/middleware"
-	sub "api/routes/info"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Info(rg *gin.RouterGroup) {
-	route := rg.Group("/info")
-	auth := rg.Group("/info", middleware.Auth())
-	cInfo := c.InfoController{}
+type infoRouter struct {
+	route     *gin.RouterGroup
+	auth      *gin.RouterGroup
+	info      interfaces.Info
+	subRoutes *[]interfaces.Router
+}
 
-	auth.POST("", cInfo.Create)
-	auth.POST("/list", cInfo.CreateAll)
-	auth.POST("/:date", cInfo.CreateOne)
+func NewInfoRouter(rg *gin.RouterGroup, handlers []func(*gin.RouterGroup) interfaces.Router) interfaces.Router {
+	var subRoutes []interfaces.Router
+	for _, handler := range handlers {
+		subRoutes = append(subRoutes, handler(rg))
+	}
 
-	route.GET("", cInfo.ReadAll)
-	route.GET("/:id", cInfo.ReadOne)
+	return &infoRouter{
+		route:     rg.Group(("/info")),
+		auth:      rg.Group("/info", middleware.Auth()),
+		info:      c.NewInfoController(),
+		subRoutes: &subRoutes,
+	}
+}
 
-	auth.PUT("", cInfo.UpdateAll)
-	auth.PUT("/:id", cInfo.UpdateOne)
+func (c *infoRouter) Init() {
+	c.auth.POST("", c.info.Create)
+	c.auth.POST("/list", c.info.CreateAll)
+	c.auth.POST("/:date", c.info.CreateOne)
 
-	auth.DELETE("", cInfo.DeleteAll)
-	auth.DELETE("/:id", cInfo.DeleteOne)
+	c.route.GET("", c.info.ReadAll)
+	c.route.GET("/:id", c.info.ReadOne)
 
-	// Sub routes
-	sub.Sum(route)
-	sub.Range(route)
+	c.auth.PUT("", c.info.UpdateAll)
+	c.auth.PUT("/:id", c.info.UpdateOne)
+
+	c.auth.DELETE("", c.info.DeleteAll)
+	c.auth.DELETE("/:id", c.info.DeleteOne)
+
+	for _, route := range *c.subRoutes {
+		route.Init()
+	}
 }

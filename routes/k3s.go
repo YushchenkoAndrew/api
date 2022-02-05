@@ -2,24 +2,37 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/interfaces"
 	"api/middleware"
-	sub "api/routes/k3s"
 
 	"github.com/gin-gonic/gin"
 )
 
-func K3s(rg *gin.RouterGroup) {
+type k3sRouter struct {
+	auth      *gin.RouterGroup
+	k3s       interfaces.K3s
+	subRoutes *[]interfaces.Router
+}
+
+func NewK3sRouter(rg *gin.RouterGroup, handlers []func(*gin.RouterGroup) interfaces.Router) interfaces.Router {
 	route := rg.Group("/k3s")
-	auth := rg.Group("/k3s", middleware.Auth())
-	cK3s := c.K3sController{}
+	var subRoutes []interfaces.Router
+	for _, handler := range handlers {
+		subRoutes = append(subRoutes, handler(route))
+	}
 
-	auth.POST("/subscribe/:id", cK3s.Subscribe)
-	auth.DELETE("/subscribe/:id", cK3s.Unsubscribe)
+	return &k3sRouter{
+		auth:      rg.Group("/k3s", middleware.Auth()),
+		k3s:       c.NewK3sController(),
+		subRoutes: &subRoutes,
+	}
+}
 
-	// Subroutes
-	sub.Namespace(route)
-	sub.Deployment(route)
-	sub.Service(route)
-	sub.Pods(route)
-	sub.Ingress(route)
+func (c *k3sRouter) Init() {
+	c.auth.POST("/subscribe/:id", c.k3s.Subscribe)
+	c.auth.DELETE("/subscribe/:id", c.k3s.Unsubscribe)
+
+	for _, route := range *c.subRoutes {
+		route.Init()
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/logs"
 	"api/models"
 	"context"
@@ -17,9 +18,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type FileController struct{}
+type fileController struct{}
 
-func (*FileController) filterQuery(c *gin.Context) (*gorm.DB, string) {
+func NewFileController() interfaces.Default {
+	return &fileController{}
+}
+
+func (*fileController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	sKeys := ""
 	result := db.DB
 	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
@@ -50,14 +55,14 @@ func (*FileController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*FileController) parseBody(body *models.ReqFile, model *models.File) {
+func (*fileController) parseBody(body *models.ReqFile, model *models.File) {
 	model.Name = body.Name
 	model.Path = body.Path
 	model.Role = body.Role
 	model.Type = body.Type
 }
 
-func (*FileController) isExist(id int, body *models.ReqFile) bool {
+func (*fileController) isExist(id int, body *models.ReqFile) bool {
 	var model []models.File
 	res := db.DB.Where("project_id = ? AND name = ? AND role = ? AND type = ?", id, body.Name, body.Role, body.Type).Find(&model)
 	return !(res.RowsAffected == 0)
@@ -78,7 +83,7 @@ func (*FileController) isExist(id int, body *models.ReqFile) bool {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file/{id} [post]
-func (o *FileController) CreateOne(c *gin.Context) {
+func (o *fileController) CreateOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect project id param")
@@ -86,7 +91,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 	}
 
 	var body models.ReqFile
-	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Role == "" || body.Type == "" {
+	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Type == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
 		return
 	}
@@ -158,7 +163,7 @@ func (o *FileController) CreateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file/list/{id} [post]
-func (o *FileController) CreateAll(c *gin.Context) {
+func (o *fileController) CreateAll(c *gin.Context) {
 	var err error
 	var id int
 	var body []models.ReqFile
@@ -237,7 +242,7 @@ func (o *FileController) CreateAll(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file/{id} [get]
-func (*FileController) ReadOne(c *gin.Context) {
+func (*fileController) ReadOne(c *gin.Context) {
 	var id int
 	var files []models.File
 
@@ -299,7 +304,7 @@ func (*FileController) ReadOne(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file [get]
-func (o *FileController) ReadAll(c *gin.Context) {
+func (o *fileController) ReadAll(c *gin.Context) {
 	var files []models.File
 	ctx := context.Background()
 
@@ -366,7 +371,7 @@ func (o *FileController) ReadAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file/{id} [put]
-func (o *FileController) UpdateOne(c *gin.Context) {
+func (o *fileController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqFile
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
@@ -424,7 +429,7 @@ func (o *FileController) UpdateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file [put]
-func (o *FileController) UpdateAll(c *gin.Context) {
+func (o *fileController) UpdateAll(c *gin.Context) {
 	var body models.ReqFile
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -481,7 +486,7 @@ func (o *FileController) UpdateAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file/{id} [delete]
-func (*FileController) DeleteOne(c *gin.Context) {
+func (*fileController) DeleteOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
@@ -541,7 +546,7 @@ func (*FileController) DeleteOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /file [delete]
-func (o *FileController) DeleteAll(c *gin.Context) {
+func (o *fileController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
 

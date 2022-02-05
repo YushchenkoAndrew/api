@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/logs"
 	"api/models"
 	"context"
@@ -17,9 +18,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type InfoController struct{}
+type infoController struct{}
 
-func (*InfoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
+func NewInfoController() interfaces.Info {
+	return &infoController{}
+}
+
+func (*infoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	sKeys := ""
 	result := db.DB
 	id, err := strconv.Atoi(c.DefaultQuery("id", "-1"))
@@ -43,7 +48,7 @@ func (*InfoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
+func (*infoController) parseBody(body *models.ReqInfo, model *models.Info) {
 	model.Countries = body.Countries
 
 	// FIXME: If need it
@@ -83,7 +88,7 @@ func (*InfoController) parseBody(body *models.ReqInfo, model *models.Info) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [post]
-func (o *InfoController) Create(c *gin.Context) {
+func (o *infoController) Create(c *gin.Context) {
 	var model = make([]models.Info, 1)
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
@@ -134,7 +139,7 @@ func (o *InfoController) Create(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{date} [post]
-func (o *InfoController) CreateOne(c *gin.Context) {
+func (o *infoController) CreateOne(c *gin.Context) {
 	var date = c.Param("date")
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
@@ -213,7 +218,7 @@ func (o *InfoController) CreateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/list [post]
-func (o *InfoController) CreateAll(c *gin.Context) {
+func (o *infoController) CreateAll(c *gin.Context) {
 	var body []models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -267,7 +272,7 @@ func (o *InfoController) CreateAll(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{id} [get]
-func (o *InfoController) ReadOne(c *gin.Context) {
+func (o *infoController) ReadOne(c *gin.Context) {
 	var id int
 	var info []models.Info
 
@@ -327,7 +332,7 @@ func (o *InfoController) ReadOne(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [get]
-func (o *InfoController) ReadAll(c *gin.Context) {
+func (o *infoController) ReadAll(c *gin.Context) {
 	var info []models.Info
 	ctx := context.Background()
 
@@ -394,7 +399,7 @@ func (o *InfoController) ReadAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{id} [put]
-func (o *InfoController) UpdateOne(c *gin.Context) {
+func (o *infoController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
@@ -452,7 +457,7 @@ func (o *InfoController) UpdateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [put]
-func (o *InfoController) UpdateAll(c *gin.Context) {
+func (o *infoController) UpdateAll(c *gin.Context) {
 	var body models.ReqInfo
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -510,7 +515,7 @@ func (o *InfoController) UpdateAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/{id} [delete]
-func (o *InfoController) DeleteOne(c *gin.Context) {
+func (o *infoController) DeleteOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
@@ -570,7 +575,7 @@ func (o *InfoController) DeleteOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info [delete]
-func (o *InfoController) DeleteAll(c *gin.Context) {
+func (o *infoController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
 

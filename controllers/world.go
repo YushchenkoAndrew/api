@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/logs"
 	"api/models"
 	"context"
@@ -16,9 +17,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type WorldController struct{}
+type worldController struct{}
 
-func (*WorldController) filterQuery(c *gin.Context) (*gorm.DB, string) {
+func NewWorldController() interfaces.Default {
+	return &worldController{}
+}
+
+func (*worldController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	sKeys := ""
 	result := db.DB
 	id, err := strconv.Atoi(c.DefaultQuery("id", "-1"))
@@ -42,7 +47,7 @@ func (*WorldController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*WorldController) parseBody(body *models.ReqWorld, model *models.World) {
+func (*worldController) parseBody(body *models.ReqWorld, model *models.World) {
 	if body.Country != "" {
 		model.Country = body.Country
 	}
@@ -66,7 +71,7 @@ func (*WorldController) parseBody(body *models.ReqWorld, model *models.World) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [post]
-func (o *WorldController) CreateOne(c *gin.Context) {
+func (o *worldController) CreateOne(c *gin.Context) {
 	var model = make([]models.World, 1)
 	var body models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil || body.Country == "" {
@@ -126,7 +131,7 @@ func (o *WorldController) CreateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/list [post]
-func (o *WorldController) CreateAll(c *gin.Context) {
+func (o *worldController) CreateAll(c *gin.Context) {
 	var body []models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil || len(body) == 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -209,7 +214,7 @@ func (o *WorldController) CreateAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/{id} [get]
-func (*WorldController) ReadOne(c *gin.Context) {
+func (*worldController) ReadOne(c *gin.Context) {
 	var id int
 	var model []models.World
 
@@ -269,7 +274,7 @@ func (*WorldController) ReadOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [get]
-func (o *WorldController) ReadAll(c *gin.Context) {
+func (o *worldController) ReadAll(c *gin.Context) {
 	var model []models.World
 	ctx := context.Background()
 
@@ -345,7 +350,7 @@ func (o *WorldController) ReadAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/{id} [put]
-func (o *WorldController) UpdateOne(c *gin.Context) {
+func (o *worldController) UpdateOne(c *gin.Context) {
 	var id int
 	var body models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
@@ -402,7 +407,7 @@ func (o *WorldController) UpdateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [put]
-func (o *WorldController) UpdateAll(c *gin.Context) {
+func (o *worldController) UpdateAll(c *gin.Context) {
 	var body models.ReqWorld
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -459,7 +464,7 @@ func (o *WorldController) UpdateAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world/{id} [delete]
-func (*WorldController) DeleteOne(c *gin.Context) {
+func (*worldController) DeleteOne(c *gin.Context) {
 	var id int
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id params")
@@ -518,7 +523,7 @@ func (*WorldController) DeleteOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /world [delete]
-func (o *WorldController) DeleteAll(c *gin.Context) {
+func (o *worldController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
 

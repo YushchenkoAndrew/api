@@ -3,6 +3,7 @@ package k3s
 import (
 	"api/config"
 	"api/helper"
+	"api/interfaces"
 	"api/models"
 	"context"
 	"net/http"
@@ -12,9 +13,15 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ServiceController struct{}
+type serviceController struct{}
 
-// @Tags K3s
+func NewServiceController() interfaces.Default {
+	return &serviceController{}
+}
+
+func (*serviceController) CreateAll(c *gin.Context) {}
+
+// @Tags Service
 // @Summary Create Service
 // @Accept json
 // @Produce application/json
@@ -28,7 +35,7 @@ type ServiceController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/service/{namespace} [post]
-func (*ServiceController) Create(c *gin.Context) {
+func (*serviceController) CreateOne(c *gin.Context) {
 	var namespace = c.Param("namespace")
 	if namespace == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Namespace name shouldn't be empty")
@@ -55,7 +62,7 @@ func (*ServiceController) Create(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Service
 // @Summary Get Service
 // @Accept json
 // @Produce application/json
@@ -69,7 +76,7 @@ func (*ServiceController) Create(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/service/{name} [get]
-func (*ServiceController) ReadOne(c *gin.Context) {
+func (*serviceController) ReadOne(c *gin.Context) {
 	var name string
 	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
@@ -103,7 +110,7 @@ func (*ServiceController) ReadOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/service [get]
-func (*ServiceController) ReadAll(c *gin.Context) {
+func (*serviceController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
 	result, err := config.K3s.CoreV1().Services(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
 
@@ -118,3 +125,8 @@ func (*ServiceController) ReadAll(c *gin.Context) {
 		Items:  int64(len(result.Items)),
 	})
 }
+
+func (*serviceController) UpdateAll(c *gin.Context) {}
+func (*serviceController) UpdateOne(c *gin.Context) {}
+func (*serviceController) DeleteAll(c *gin.Context) {}
+func (*serviceController) DeleteOne(c *gin.Context) {}

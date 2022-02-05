@@ -2,25 +2,36 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/interfaces"
 	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Link(rg *gin.RouterGroup) {
-	route := rg.Group("/link")
-	auth := rg.Group("/link", middleware.Auth())
-	cLink := c.LinkController{}
+type linkRouter struct {
+	route *gin.RouterGroup
+	auth  *gin.RouterGroup
+	link  interfaces.Default
+}
 
-	auth.POST("/list/:id", cLink.CreateAll)
-	auth.POST("/:id", cLink.CreateOne)
+func NewLinkRouter(rg *gin.RouterGroup) interfaces.Router {
+	return &linkRouter{
+		route: rg.Group(("/link")),
+		auth:  rg.Group("/link", middleware.Auth()),
+		link:  c.NewLinkController(),
+	}
+}
 
-	route.GET("/:id", cLink.ReadOne)
-	route.GET("", cLink.ReadAll)
+func (c *linkRouter) Init() {
+	c.auth.POST("/list/:id", c.link.CreateAll)
+	c.auth.POST("/:id", c.link.CreateOne)
 
-	auth.PUT("/:id", cLink.UpdateOne)
-	auth.PUT("", cLink.UpdateAll)
+	c.route.GET("/:id", c.link.ReadOne)
+	c.route.GET("", c.link.ReadAll)
 
-	auth.DELETE("/:id", cLink.DeleteOne)
-	auth.DELETE("", cLink.DeleteAll)
+	c.auth.PUT("/:id", c.link.UpdateOne)
+	c.auth.PUT("", c.link.UpdateAll)
+
+	c.auth.DELETE("/:id", c.link.DeleteOne)
+	c.auth.DELETE("", c.link.DeleteAll)
 }

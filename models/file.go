@@ -3,7 +3,7 @@ package models
 import "time"
 
 type File struct {
-	ID        uint32    `gorm:"primaryKey" json:"id" xml:"id"`
+	ID        uint32    `gorm:"type:bigint;primary_key,AUTO_INCREMENT" json:"id" xml:"id"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at" xml:"updated_at" example:"2021-08-27T16:17:53.119571+03:00"`
 	Name      string    `gorm:"not null" json:"name" xml:"name" example:"index.js"`
 	Path      string    `json:"path" xml:"path" example:"/test"`

@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces/info"
 	"api/logs"
 	"api/models"
 	"context"
@@ -12,7 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RangeController struct{}
+type rangeController struct{}
+
+func NewRangeController() info.Default {
+	return &rangeController{}
+}
 
 // @Tags Info
 // @Summary Get Info data by date Range
@@ -27,7 +32,7 @@ type RangeController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/range [get]
-func (*RangeController) Read(c *gin.Context) {
+func (*rangeController) Read(c *gin.Context) {
 	var model []models.Info
 	ctx := context.Background()
 

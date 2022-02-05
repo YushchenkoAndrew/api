@@ -2,17 +2,29 @@ package k3s
 
 import (
 	c "api/controllers/k3s"
+	"api/interfaces"
 	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Deployment(rg *gin.RouterGroup) {
-	auth := rg.Group("/deployment", middleware.Auth())
-	cDeployment := c.DeploymentController{}
+type deploymentRouter struct {
+	auth       *gin.RouterGroup
+	deployment interfaces.Default
+}
 
-	auth.POST("/:namespace", cDeployment.Create)
+func NewDeploymentRouterFactory() func(*gin.RouterGroup) interfaces.Router {
+	return func(rg *gin.RouterGroup) interfaces.Router {
+		return &deploymentRouter{
+			auth:       rg.Group("/deployment", middleware.Auth()),
+			deployment: c.NewDeploymentController(),
+		}
+	}
+}
 
-	auth.GET("", cDeployment.ReadAll)
-	auth.GET("/:name", cDeployment.ReadOne)
+func (c *deploymentRouter) Init() {
+	c.auth.POST("/:namespace", c.deployment.CreateOne)
+
+	c.auth.GET("", c.deployment.ReadAll)
+	c.auth.GET("/:name", c.deployment.ReadOne)
 }

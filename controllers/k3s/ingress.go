@@ -3,6 +3,7 @@ package k3s
 import (
 	"api/config"
 	"api/helper"
+	"api/interfaces"
 	"api/models"
 	"context"
 	"net/http"
@@ -12,23 +13,29 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type IngressController struct{}
+type ingressController struct{}
 
-// @Tags K3s
+func NewIngressController() interfaces.Default {
+	return &ingressController{}
+}
+
+func (*ingressController) CreateAll(c *gin.Context) {}
+
+// @Tags Ingress
 // @Summary Create Ingress
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
 // @Param namespace path string true "Namespace name"
-// @Param model body v1.Service true "Ingress config file"
+// @Param model body v1.Ingress true "Ingress config file"
 // @Success 201 {object} models.Success{result=[]v1.Ingress}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service/{namespace} [post]
-func (*IngressController) Create(c *gin.Context) {
+// @Router /k3s/ingress/{namespace} [post]
+func (*ingressController) CreateOne(c *gin.Context) {
 	var namespace = c.Param("namespace")
 	if namespace == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Namespace name shouldn't be empty")
@@ -55,7 +62,7 @@ func (*IngressController) Create(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Ingress
 // @Summary Get Ingress
 // @Accept json
 // @Produce application/json
@@ -68,8 +75,8 @@ func (*IngressController) Create(c *gin.Context) {
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service/{name} [get]
-func (*IngressController) ReadOne(c *gin.Context) {
+// @Router /k3s/ingress/{name} [get]
+func (*ingressController) ReadOne(c *gin.Context) {
 	var name string
 	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
@@ -91,19 +98,19 @@ func (*IngressController) ReadOne(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Ingress
 // @Summary Get Ingress
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
 // @Param namespace query string false "Namespace name"
-// @Success 200 {object} models.Success{result=[]v1.Service}
+// @Success 200 {object} models.Success{result=[]v1.Ingress}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service [get]
-func (*IngressController) ReadAll(c *gin.Context) {
+// @Router /k3s/ingress [get]
+func (*ingressController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
 	result, err := config.K3s.NetworkingV1().Ingresses(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
 
@@ -118,3 +125,8 @@ func (*IngressController) ReadAll(c *gin.Context) {
 		Items:  int64(len(result.Items)),
 	})
 }
+
+func (*ingressController) UpdateAll(c *gin.Context) {}
+func (*ingressController) UpdateOne(c *gin.Context) {}
+func (*ingressController) DeleteAll(c *gin.Context) {}
+func (*ingressController) DeleteOne(c *gin.Context) {}

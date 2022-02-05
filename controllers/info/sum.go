@@ -3,6 +3,7 @@ package info
 import (
 	"api/db"
 	"api/helper"
+	"api/interfaces/info"
 	"api/logs"
 	"api/models"
 	"context"
@@ -12,7 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SumController struct{}
+type sumController struct{}
+
+func NewSumController() info.Default {
+	return &sumController{}
+}
 
 // @Tags Info
 // @Summary Get Info Sum
@@ -23,7 +28,7 @@ type SumController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /info/sum [get]
-func (o *SumController) ReadAll(c *gin.Context) {
+func (o *sumController) Read(c *gin.Context) {
 	var stat models.StatInfo
 	ctx := context.Background()
 

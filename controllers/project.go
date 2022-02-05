@@ -4,6 +4,7 @@ import (
 	"api/config"
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/logs"
 	"api/models"
 	"context"
@@ -16,9 +17,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProjectController struct{}
+type projectController struct{}
 
-func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
+func NewProjectController() interfaces.Default {
+	return &projectController{}
+}
+
+func (*projectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	sKeys := ""
 	result := db.DB
 	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
@@ -57,7 +62,7 @@ func (*ProjectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*ProjectController) filterFileQuery(c *gin.Context) (result []interface{}) {
+func (*projectController) filterFileQuery(c *gin.Context) (result []interface{}) {
 	var condition string = ""
 	var args []interface{}
 
@@ -82,7 +87,7 @@ func (*ProjectController) filterFileQuery(c *gin.Context) (result []interface{})
 	return
 }
 
-func (*ProjectController) filterLinkQuery(c *gin.Context) []interface{} {
+func (*projectController) filterLinkQuery(c *gin.Context) []interface{} {
 	if name := c.DefaultQuery("link_name", ""); name != "" {
 		return []interface{}{"name = ?", name}
 	}
@@ -90,7 +95,7 @@ func (*ProjectController) filterLinkQuery(c *gin.Context) []interface{} {
 	return []interface{}{}
 }
 
-func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Project) bool {
+func (o *projectController) parseBody(body *models.ReqProject, model *models.Project) bool {
 	model.Name = body.Name
 	model.Title = body.Title
 	model.Desc = body.Desc
@@ -127,14 +132,14 @@ func (o *ProjectController) parseBody(body *models.ReqProject, model *models.Pro
 	return true
 }
 
-func (*ProjectController) parseFileBody(body *models.File, model *models.File) {
+func (*projectController) parseFileBody(body *models.File, model *models.File) {
 	model.Name = body.Name
 	model.Path = body.Path
 	model.Role = body.Role
 	model.Type = body.Type
 }
 
-func (*ProjectController) parseLinkBody(body *models.Link, model *models.Link) {
+func (*projectController) parseLinkBody(body *models.Link, model *models.Link) {
 	model.Name = body.Name
 	model.Link = body.Link
 }
@@ -153,7 +158,7 @@ func (*ProjectController) parseLinkBody(body *models.Link, model *models.Link) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project [post]
-func (o *ProjectController) CreateOne(c *gin.Context) {
+func (o *projectController) CreateOne(c *gin.Context) {
 	var body models.ReqProject
 	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Title == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
@@ -216,7 +221,7 @@ func (o *ProjectController) CreateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project/list/{id} [post]
-func (o *ProjectController) CreateAll(c *gin.Context) {
+func (o *projectController) CreateAll(c *gin.Context) {
 	var body []models.ReqProject
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -282,7 +287,7 @@ func (o *ProjectController) CreateAll(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project/{name} [get]
-func (*ProjectController) ReadOne(c *gin.Context) {
+func (*projectController) ReadOne(c *gin.Context) {
 	var name string
 	var project []models.Project
 
@@ -347,7 +352,7 @@ func (*ProjectController) ReadOne(c *gin.Context) {
 // @failure 400 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project [get]
-func (o *ProjectController) ReadAll(c *gin.Context) {
+func (o *projectController) ReadAll(c *gin.Context) {
 	var project []models.Project
 	ctx := context.Background()
 
@@ -417,7 +422,7 @@ func (o *ProjectController) ReadAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project/{name} [put]
-func (o *ProjectController) UpdateOne(c *gin.Context) {
+func (o *projectController) UpdateOne(c *gin.Context) {
 	var body models.ReqProject
 
 	var name = c.Param("name")
@@ -478,7 +483,7 @@ func (o *ProjectController) UpdateOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project [put]
-func (o *ProjectController) UpdateAll(c *gin.Context) {
+func (o *projectController) UpdateAll(c *gin.Context) {
 	var body models.ReqProject
 	if err := c.ShouldBind(&body); err != nil || len(body.Files) != 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
@@ -539,7 +544,7 @@ func (o *ProjectController) UpdateAll(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project/{name} [delete]
-func (*ProjectController) DeleteOne(c *gin.Context) {
+func (*projectController) DeleteOne(c *gin.Context) {
 	var name string
 	var project []models.Project
 
@@ -629,7 +634,7 @@ func (*ProjectController) DeleteOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /project [delete]
-func (o *ProjectController) DeleteAll(c *gin.Context) {
+func (o *projectController) DeleteAll(c *gin.Context) {
 	var sKeys string
 	var result *gorm.DB
 	var project []models.Project

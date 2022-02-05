@@ -3,6 +3,7 @@ package k3s
 import (
 	"api/config"
 	"api/helper"
+	"api/interfaces"
 	"api/models"
 	"context"
 	"net/http"
@@ -12,9 +13,15 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NamespaceController struct{}
+type namespaceController struct{}
 
-// @Tags K3s
+func NewNamespaceController() interfaces.Default {
+	return &namespaceController{}
+}
+
+func (*namespaceController) CreateAll(c *gin.Context) {}
+
+// @Tags Namespace
 // @Summary Create Namespace
 // @Accept json
 // @Produce application/json
@@ -28,7 +35,7 @@ type NamespaceController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/namespace [post]
-func (*NamespaceController) Create(c *gin.Context) {
+func (*namespaceController) CreateOne(c *gin.Context) {
 	var body v1.Namespace
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body is not setted")
@@ -49,7 +56,7 @@ func (*NamespaceController) Create(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Namespace
 // @Summary Get Deployments
 // @Accept json
 // @Produce application/json
@@ -62,7 +69,7 @@ func (*NamespaceController) Create(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/namespace/{name} [get]
-func (*NamespaceController) ReadOne(c *gin.Context) {
+func (*namespaceController) ReadOne(c *gin.Context) {
 	var name = c.Param("name")
 	if name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
@@ -84,7 +91,7 @@ func (*NamespaceController) ReadOne(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Namespace
 // @Summary Get Deployments
 // @Accept json
 // @Produce application/json
@@ -95,7 +102,7 @@ func (*NamespaceController) ReadOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/namespace [get]
-func (*NamespaceController) ReadAll(c *gin.Context) {
+func (*namespaceController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
 	result, err := config.K3s.CoreV1().Namespaces().List(ctx, metaV1.ListOptions{})
 
@@ -110,3 +117,8 @@ func (*NamespaceController) ReadAll(c *gin.Context) {
 		Items:  int64(len(result.Items)),
 	})
 }
+
+func (*namespaceController) UpdateAll(c *gin.Context) {}
+func (*namespaceController) UpdateOne(c *gin.Context) {}
+func (*namespaceController) DeleteAll(c *gin.Context) {}
+func (*namespaceController) DeleteOne(c *gin.Context) {}

@@ -56,5 +56,6 @@ k3s.yaml
 *.out
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
+docs/
 

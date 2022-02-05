@@ -2,14 +2,24 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/interfaces"
 	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Bot(rg *gin.RouterGroup) {
-	cBot := c.BotController{}
-	auth := rg.Group("/bot", middleware.Auth())
+type botRouter struct {
+	auth *gin.RouterGroup
+	bot  interfaces.Bot
+}
 
-	auth.POST("/redis", cBot.Redis)
+func NewBotRouter(rg *gin.RouterGroup) interfaces.Router {
+	return &botRouter{
+		auth: rg.Group("/bot", middleware.Auth()),
+		bot:  c.NewBotController(),
+	}
+}
+
+func (c *botRouter) Init() {
+	c.auth.POST("/redis", c.bot.Redis)
 }

@@ -2,17 +2,29 @@ package k3s
 
 import (
 	c "api/controllers/k3s"
+	"api/interfaces"
 	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Ingress(rg *gin.RouterGroup) {
-	auth := rg.Group("/ingress", middleware.Auth())
-	cIngress := c.IngressController{}
+type ingressRouter struct {
+	auth    *gin.RouterGroup
+	ingress interfaces.Default
+}
 
-	auth.POST("/:namespace", cIngress.Create)
+func NewIngressRouterFactory() func(*gin.RouterGroup) interfaces.Router {
+	return func(rg *gin.RouterGroup) interfaces.Router {
+		return &ingressRouter{
+			auth:    rg.Group("/ingress", middleware.Auth()),
+			ingress: c.NewIngressController(),
+		}
+	}
+}
 
-	auth.GET("", cIngress.ReadAll)
-	auth.GET("/:name", cIngress.ReadOne)
+func (c *ingressRouter) Init() {
+	c.auth.POST("/:namespace", c.ingress.CreateOne)
+
+	c.auth.GET("", c.ingress.ReadAll)
+	c.auth.GET("/:name", c.ingress.ReadOne)
 }

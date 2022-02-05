@@ -3,6 +3,7 @@ package controllers
 import (
 	"api/db"
 	"api/helper"
+	"api/interfaces"
 	"api/models"
 	"context"
 	"net/http"
@@ -11,7 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type BotController struct{}
+type botController struct{}
+
+func NewBotController() interfaces.Bot {
+	return &botController{}
+}
 
 // @Tags Bot
 // @Summary Execute redis Command from request
@@ -25,7 +30,7 @@ type BotController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /bot/redis [post]
-func (*BotController) Redis(c *gin.Context) {
+func (*botController) Redis(c *gin.Context) {
 	var body models.BotRedis
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body")

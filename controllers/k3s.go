@@ -1,8 +1,16 @@
 package controllers
 
-import "github.com/gin-gonic/gin"
+import (
+	"api/interfaces"
 
-type K3sController struct{}
+	"github.com/gin-gonic/gin"
+)
+
+type k3sController struct{}
+
+func NewK3sController() interfaces.K3s {
+	return &k3sController{}
+}
 
 // @Tags K3s
 // @Summary Create
@@ -19,7 +27,7 @@ type K3sController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/{id} [post]
-func (*K3sController) Subscribe(c *gin.Context) {
+func (*k3sController) Subscribe(c *gin.Context) {
 
 }
 
@@ -38,6 +46,6 @@ func (*K3sController) Subscribe(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /link/{id} [post]
-func (*K3sController) Unsubscribe(c *gin.Context) {
+func (*k3sController) Unsubscribe(c *gin.Context) {
 
 }

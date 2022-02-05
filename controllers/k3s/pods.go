@@ -3,6 +3,7 @@ package k3s
 import (
 	"api/config"
 	"api/helper"
+	"api/interfaces/k3s"
 	"api/logs"
 	"api/models"
 	"context"
@@ -13,12 +14,15 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
-	metricsV1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
-type PodsController struct{}
+type podsController struct{}
 
-// @Tags K3s
+func NewPodsController() k3s.Pods {
+	return &podsController{}
+}
+
+// @Tags Pods
 // @Summary Exec command inside Pod
 // @Accept json
 // @Produce application/json
@@ -32,7 +36,7 @@ type PodsController struct{}
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/service/{name} [post]
-func (*PodsController) Exec(c *gin.Context) {
+func (*podsController) Exec(c *gin.Context) {
 	var name string
 	var namespace string
 
@@ -90,21 +94,21 @@ func (*PodsController) Exec(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Pods
 // @Summary Get Pod
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param name path string true "Specified name of Service"
+// @Param name path string true "Specified name of Pod"
 // @Param namespace query string true "Namespace name"
-// @Success 200 {object} models.Success{result=[]v1.Service}
+// @Success 200 {object} models.Success{result=[]v1.Pod}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service/{name} [get]
-func (*PodsController) ReadOne(c *gin.Context) {
+// @Router /k3s/pod/{name} [get]
+func (*podsController) ReadOne(c *gin.Context) {
 	var name string
 	var namespace string
 
@@ -119,7 +123,7 @@ func (*PodsController) ReadOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	result, err := config.K3s.CoreV1().Services(namespace).Get(ctx, name, metaV1.GetOptions{})
+	result, err := config.K3s.CoreV1().Pods(namespace).Get(ctx, name, metaV1.GetOptions{})
 
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
@@ -128,12 +132,12 @@ func (*PodsController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status: "OK",
-		Result: &[1]v1.Service{*result},
+		Result: &[1]v1.Pod{*result},
 		Items:  1,
 	})
 }
 
-// @Tags K3s
+// @Tags Pods
 // @Summary Get Pods
 // @Accept json
 // @Produce application/json
@@ -145,7 +149,7 @@ func (*PodsController) ReadOne(c *gin.Context) {
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /k3s/pod [get]
-func (*PodsController) ReadAll(c *gin.Context) {
+func (*podsController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
 	result, err := config.K3s.CoreV1().Pods(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
 
@@ -154,82 +158,9 @@ func (*PodsController) ReadAll(c *gin.Context) {
 		return
 	}
 
-	// helper.ResHandler(c, http.StatusOK, models.Success{
-	// 	Status: "OK",
-	// 	Result: result.Items,
-	// 	Items:  int64(len(result.Items)),
-	// })
-
-	result2, err2 := config.Metrics.MetricsV1beta1().PodMetricses(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
-	if err2 != nil {
-		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	helper.ResHandler(c, http.StatusOK, models.Success{
 		Status: "OK",
-		Result: &result2,
-		Items:  int64(len(result.Items)),
-	})
-}
-
-// @Tags K3s
-// @Summary Get Pod Metrics
-// @Accept json
-// @Produce application/json
-// @Produce application/xml
-// @Security BearerAuth
-// @Param name path string true "Specified name of Service"
-// @Param namespace query string false "Namespace name"
-// @Success 200 {object} models.Success{result=[]v1.Pod}
-// @failure 422 {object} models.Error
-// @failure 429 {object} models.Error
-// @failure 500 {object} models.Error
-// @Router /k3s/pod/metrics/{name} [get]
-func (*PodsController) ReadMetricsOne(c *gin.Context) {
-	var name string
-	if name = c.Param("name"); name == "" {
-		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
-		return
-	}
-
-	ctx := context.Background()
-	result, err := config.Metrics.MetricsV1beta1().PodMetricses(c.DefaultQuery("namespace", metaV1.NamespaceDefault)).Get(ctx, name, metaV1.GetOptions{})
-	if err != nil {
-		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	helper.ResHandler(c, http.StatusOK, models.Success{
-		Status: "OK",
-		Result: &[1]metricsV1.PodMetrics{*result},
-		Items:  1,
-	})
-}
-
-// @Tags K3s
-// @Summary Get Pods Metrics
-// @Accept json
-// @Produce application/json
-// @Produce application/xml
-// @Security BearerAuth
-// @Param namespace query string false "Namespace name"
-// @Success 200 {object} models.Success{result=[]v1.Pod}
-// @failure 422 {object} models.Error
-// @failure 429 {object} models.Error
-// @failure 500 {object} models.Error
-// @Router /k3s/pod/metrics [get]
-func (*PodsController) ReadMetricsAll(c *gin.Context) {
-	ctx := context.Background()
-	result, err := config.Metrics.MetricsV1beta1().PodMetricses(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
-	if err != nil {
-		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	helper.ResHandler(c, http.StatusOK, models.Success{
-		Status: "OK",
-		Result: &result.Items,
+		Result: &result,
 		Items:  int64(len(result.Items)),
 	})
 }

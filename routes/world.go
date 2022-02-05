@@ -2,25 +2,36 @@ package routes
 
 import (
 	c "api/controllers"
+	"api/interfaces"
 	"api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func World(rg *gin.RouterGroup) {
-	route := rg.Group("/world")
-	auth := rg.Group("/world", middleware.Auth())
-	cWorld := c.WorldController{}
+type worldRouter struct {
+	route *gin.RouterGroup
+	auth  *gin.RouterGroup
+	world interfaces.Default
+}
 
-	auth.POST("", cWorld.CreateOne)
-	auth.POST("/list", cWorld.CreateAll)
+func NewWorldRouter(rg *gin.RouterGroup) interfaces.Router {
+	return &worldRouter{
+		route: rg.Group(("/world")),
+		auth:  rg.Group("/world", middleware.Auth()),
+		world: c.NewWorldController(),
+	}
+}
 
-	route.GET("/:id", cWorld.ReadOne)
-	route.GET("", cWorld.ReadAll)
+func (c *worldRouter) Init() {
+	c.auth.POST("", c.world.CreateOne)
+	c.auth.POST("/list", c.world.CreateAll)
 
-	auth.PUT("/:id", cWorld.UpdateOne)
-	auth.PUT("", cWorld.UpdateAll)
+	c.route.GET("/:id", c.world.ReadOne)
+	c.route.GET("", c.world.ReadAll)
 
-	auth.DELETE("/:id", cWorld.DeleteOne)
-	auth.DELETE("", cWorld.DeleteAll)
+	c.auth.PUT("/:id", c.world.UpdateOne)
+	c.auth.PUT("", c.world.UpdateAll)
+
+	c.auth.DELETE("/:id", c.world.DeleteOne)
+	c.auth.DELETE("", c.world.DeleteAll)
 }
