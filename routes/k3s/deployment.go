@@ -26,5 +26,6 @@ func (c *deploymentRouter) Init() {
 	c.auth.POST("/:namespace", c.deployment.CreateOne)
 
 	c.auth.GET("", c.deployment.ReadAll)
-	c.auth.GET("/:name", c.deployment.ReadOne)
+	c.auth.GET("/:namespace", c.deployment.ReadAll)
+	c.auth.GET("/:namespace/:name", c.deployment.ReadOne)
 }

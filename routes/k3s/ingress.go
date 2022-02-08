@@ -25,6 +25,7 @@ func NewIngressRouterFactory() func(*gin.RouterGroup) interfaces.Router {
 func (c *ingressRouter) Init() {
 	c.auth.POST("/:namespace", c.ingress.CreateOne)
 
-	c.auth.GET("", c.ingress.ReadAll)
-	c.auth.GET("/:name", c.ingress.ReadOne)
+	c.auth.GET("/", c.ingress.ReadAll)
+	c.auth.GET("/:namespace", c.ingress.ReadAll)
+	c.auth.GET("/:namespace/:name", c.ingress.ReadOne)
 }

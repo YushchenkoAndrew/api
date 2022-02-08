@@ -35,7 +35,7 @@ func NewPodsController() k3s.Pods {
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service/{name} [post]
+// @Router /k3s/pod/{namespace}/{name} [post]
 func (*podsController) Exec(c *gin.Context) {
 	var name string
 	var namespace string
@@ -46,7 +46,7 @@ func (*podsController) Exec(c *gin.Context) {
 		return
 	}
 
-	if namespace = c.DefaultQuery("namespace", ""); namespace == "" {
+	if namespace = c.Param("namespace"); namespace == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Namespace shouldn't be empty")
 		return
 	}
@@ -101,13 +101,13 @@ func (*podsController) Exec(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param name path string true "Specified name of Pod"
-// @Param namespace query string true "Namespace name"
+// @Param namespace path string true "Namespace name"
 // @Success 200 {object} models.Success{result=[]v1.Pod}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/pod/{name} [get]
+// @Router /k3s/pod/{namespace}/{name} [get]
 func (*podsController) ReadOne(c *gin.Context) {
 	var name string
 	var namespace string
@@ -117,7 +117,7 @@ func (*podsController) ReadOne(c *gin.Context) {
 		return
 	}
 
-	if namespace = c.DefaultQuery("namespace", ""); namespace == "" {
+	if namespace = c.Param("namespace"); namespace == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Namespace shouldn't be empty")
 		return
 	}
@@ -143,15 +143,15 @@ func (*podsController) ReadOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param namespace query string false "Namespace name"
+// @Param namespace path string false "Namespace name"
 // @Success 200 {object} models.Success{result=[]v1.Pod}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/pod [get]
+// @Router /k3s/pod/{namespace} [get]
 func (*podsController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
-	result, err := config.K3s.CoreV1().Pods(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
+	result, err := config.K3s.CoreV1().Pods(c.Param("namespace")).List(ctx, metaV1.ListOptions{})
 
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())

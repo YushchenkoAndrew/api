@@ -21,7 +21,7 @@ func NewDeploymentController() interfaces.Default {
 
 func (*deploymentController) CreateAll(c *gin.Context) {}
 
-// @Tags K3s/Deployment
+// @Tags Deployment
 // @Summary Create Deployment
 // @Accept json
 // @Produce application/json
@@ -62,30 +62,36 @@ func (*deploymentController) CreateOne(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Deployment
 // @Summary Get Deployments
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
 // @Param name path string true "Specified name of deployment"
-// @Param namespace query string false "Namespace name"
+// @Param namespace path string false "Namespace name"
 // @Success 200 {object} models.Success{result=[]v1.Deployment}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/deployment/{name} [get]
+// @Router /k3s/deployment/{namespace}/{name} [get]
 func (*deploymentController) ReadOne(c *gin.Context) {
 	var name string
+	var namespace string
 
 	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
 		return
 	}
 
+	if namespace = c.Param("namespace"); namespace == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Namespace shouldn't be empty")
+		return
+	}
+
 	ctx := context.Background()
-	result, err := config.K3s.AppsV1().Deployments(c.DefaultQuery("namespace", metaV1.NamespaceDefault)).Get(ctx, name, metaV1.GetOptions{})
+	result, err := config.K3s.AppsV1().Deployments(namespace).Get(ctx, name, metaV1.GetOptions{})
 
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
@@ -99,21 +105,21 @@ func (*deploymentController) ReadOne(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Deployment
 // @Summary Get Deployments
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param namespace query string false "Namespace name"
+// @Param namespace path string false "Namespace name"
 // @Success 200 {object} models.Success{result=[]v1.Deployment}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/deployment [get]
+// @Router /k3s/deployment/{namespace} [get]
 func (*deploymentController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
-	result, err := config.K3s.AppsV1().Deployments(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
+	result, err := config.K3s.AppsV1().Deployments(c.Param("namespace")).List(ctx, metaV1.ListOptions{})
 
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())

@@ -26,5 +26,6 @@ func (c *serviceRouter) Init() {
 	c.auth.POST("/:namespace", c.service.CreateOne)
 
 	c.auth.GET("", c.service.ReadAll)
-	c.auth.GET("/:name", c.service.ReadOne)
+	c.auth.GET("/:namespace", c.service.ReadAll)
+	c.auth.GET("/:namespace/:name", c.service.ReadOne)
 }

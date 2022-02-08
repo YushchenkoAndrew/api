@@ -7,8 +7,12 @@ import (
 	"api/logs"
 	"api/models"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -118,5 +122,60 @@ func Auth() gin.HandlerFunc {
 
 		// after request
 
+	}
+}
+
+func AuthToken() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		bearToken := strings.Split(c.Request.Header.Get("Authorization"), " ")
+
+		if len(bearToken) != 2 {
+			helper.ErrHandler(c, http.StatusUnauthorized, "Invalid token inforamation")
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				File:    "/middleware/auth.go",
+				Message: "Ohhh nyo your token is inccorrect",
+			})
+			return
+		}
+
+		// NOTE: Simple way for solving redis injection vulnerabilities
+		hasher := md5.New()
+		hasher.Write([]byte(bearToken[1]))
+		token := hex.EncodeToString(hasher.Sum(nil))
+
+		ctx := context.Background()
+		if token, err := db.Redis.Get(ctx, "TOKEN:"+token).Result(); err != nil || token != "OK" {
+			helper.ErrHandler(c, http.StatusUnauthorized, err.Error())
+			go logs.SendLogs(&models.LogMessage{
+				Stat:    "ERR",
+				Name:    "API",
+				File:    "/middleware/auth.go",
+				Message: "Ohhh nyo your token is inccorrect",
+			})
+			return
+		}
+
+		// before request
+
+		c.Next()
+
+		// after request
+
+		// Manially refresh token after each use
+		db.Redis.Del(ctx, "TOKEN:"+token)
+
+		salt := strconv.Itoa(rand.Intn(1000000) + 5000)
+
+		hasher = md5.New()
+		hasher.Write([]byte(salt + bearToken[1] + config.ENV.Pepper))
+		token = hex.EncodeToString(hasher.Sum(nil))
+
+		hasher = md5.New()
+		hasher.Write([]byte(token))
+
+		db.Redis.Set(ctx, "TOKEN:"+hex.EncodeToString(hasher.Sum(nil)), "OK", 0)
+		helper.ResHandler(c, http.StatusOK, salt)
 	}
 }
