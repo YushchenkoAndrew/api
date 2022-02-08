@@ -28,6 +28,7 @@ type EnvType struct {
 
 	// Root User Login + Pass & Pepper
 	ID     string `mapstructure:"API_ID"`
+	URL    string `mapstructure:"API_URL"`
 	User   string `mapstructure:"API_USER"`
 	Pass   string `mapstructure:"API_PASS"`
 	Pepper string `mapstructure:"API_PEPPER"`
@@ -47,6 +48,9 @@ type EnvType struct {
 	// Migration Settings
 	ForceMigrate  bool   `mapstructure:"FORCE_MIGRATE"`
 	MigrationPath string `mapstructure:"MIGRATION_PATH"`
+
+	// Metrics
+	Metrics int `mapstructure:"METRICS_COUNT"`
 }
 
 var ENV EnvType

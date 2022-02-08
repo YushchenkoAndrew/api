@@ -103,7 +103,7 @@ func (o *worldController) CreateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -189,7 +189,7 @@ func (o *worldController) CreateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -247,7 +247,7 @@ func (*worldController) ReadOne(c *gin.Context) {
 	var err error
 	if items, err = db.Redis.Get(ctx, "nWorld").Int64(); err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -321,7 +321,7 @@ func (o *worldController) ReadAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -378,7 +378,7 @@ func (o *worldController) UpdateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -438,7 +438,7 @@ func (o *worldController) UpdateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -489,7 +489,7 @@ func (*worldController) DeleteOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
@@ -545,7 +545,7 @@ func (o *worldController) DeleteAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nWorld").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 

@@ -122,7 +122,7 @@ func (o *linkController) CreateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go model[0].Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -160,7 +160,7 @@ func (o *linkController) CreateAll(c *gin.Context) {
 		return
 	}
 
-	if err = c.ShouldBind(&body); err != nil {
+	if err = c.ShouldBind(&body); err != nil || len(body) == 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
 	}
@@ -205,7 +205,7 @@ func (o *linkController) CreateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go model[0].Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -262,7 +262,7 @@ func (*linkController) ReadOne(c *gin.Context) {
 	var err error
 	if items, err = db.Redis.Get(ctx, "nLink").Int64(); err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -327,7 +327,7 @@ func (o *linkController) ReadAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -384,7 +384,7 @@ func (o *linkController) UpdateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -444,7 +444,7 @@ func (o *linkController) UpdateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -495,7 +495,7 @@ func (*linkController) DeleteOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
@@ -551,7 +551,7 @@ func (o *linkController) DeleteAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nLink").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 

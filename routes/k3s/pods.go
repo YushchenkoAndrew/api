@@ -36,7 +36,8 @@ func (c *podsRouter) Init() {
 	c.auth.POST("/:name", c.pods.Exec)
 
 	c.auth.GET("", c.pods.ReadAll)
-	c.auth.GET("/:name", c.pods.ReadOne)
+	c.auth.GET("/:namespace", c.pods.ReadAll)
+	c.auth.GET("/:namespace/:name", c.pods.ReadOne)
 
 	for _, route := range *c.subRoutes {
 		route.Init()

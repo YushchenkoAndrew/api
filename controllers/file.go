@@ -135,7 +135,7 @@ func (o *fileController) CreateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -218,7 +218,7 @@ func (o *fileController) CreateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -275,7 +275,7 @@ func (*fileController) ReadOne(c *gin.Context) {
 	var err error
 	if items, err = db.Redis.Get(ctx, "nFile").Int64(); err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -342,7 +342,7 @@ func (o *fileController) ReadAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -399,7 +399,7 @@ func (o *fileController) UpdateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -460,7 +460,7 @@ func (o *fileController) UpdateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -511,7 +511,7 @@ func (*fileController) DeleteOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 
@@ -568,7 +568,7 @@ func (o *fileController) DeleteAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nFile").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.File{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 	}
 

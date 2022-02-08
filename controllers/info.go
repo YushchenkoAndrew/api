@@ -111,7 +111,7 @@ func (o *infoController) Create(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -190,7 +190,7 @@ func (o *infoController) CreateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -246,7 +246,7 @@ func (o *infoController) CreateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -305,7 +305,7 @@ func (o *infoController) ReadOne(c *gin.Context) {
 	var err error
 	if items, err = db.Redis.Get(ctx, "nInfo").Int64(); err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -370,7 +370,7 @@ func (o *infoController) ReadAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -427,7 +427,7 @@ func (o *infoController) UpdateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -488,7 +488,7 @@ func (o *infoController) UpdateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -540,7 +540,7 @@ func (o *infoController) DeleteOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
@@ -597,7 +597,7 @@ func (o *infoController) DeleteAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 

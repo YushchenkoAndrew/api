@@ -185,7 +185,7 @@ func (o *projectController) CreateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -254,7 +254,7 @@ func (o *projectController) CreateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -320,7 +320,7 @@ func (*projectController) ReadOne(c *gin.Context) {
 	var err error
 	if items, err = db.Redis.Get(ctx, "nProject").Int64(); err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -392,7 +392,7 @@ func (o *projectController) ReadAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -454,7 +454,7 @@ func (o *projectController) UpdateOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -517,7 +517,7 @@ func (o *projectController) UpdateAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -596,7 +596,7 @@ func (*projectController) DeleteOne(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
@@ -683,7 +683,7 @@ func (o *projectController) DeleteAll(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nProject").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 

@@ -69,22 +69,29 @@ func (*serviceController) CreateOne(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param name path string true "Specified name of Service"
-// @Param namespace query string false "Namespace name"
+// @Param namespace path string false "Namespace name"
 // @Success 200 {object} models.Success{result=[]v1.Service}
 // @failure 400 {object} models.Error
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service/{name} [get]
+// @Router /k3s/service/{namespace}/{name} [get]
 func (*serviceController) ReadOne(c *gin.Context) {
 	var name string
+	var namespace string
+
 	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
 		return
 	}
 
+	if namespace = c.Param("namespace"); namespace == "" {
+		helper.ErrHandler(c, http.StatusBadRequest, "Namespace shouldn't be empty")
+		return
+	}
+
 	ctx := context.Background()
-	result, err := config.K3s.CoreV1().Services(c.DefaultQuery("namespace", metaV1.NamespaceDefault)).Get(ctx, name, metaV1.GetOptions{})
+	result, err := config.K3s.CoreV1().Services(namespace).Get(ctx, name, metaV1.GetOptions{})
 
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
@@ -98,21 +105,21 @@ func (*serviceController) ReadOne(c *gin.Context) {
 	})
 }
 
-// @Tags K3s
+// @Tags Service
 // @Summary Get Service
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param namespace query string false "Namespace name"
+// @Param namespace path string false "Namespace name"
 // @Success 200 {object} models.Success{result=[]v1.Service}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/service [get]
+// @Router /k3s/service/{namespace} [get]
 func (*serviceController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
-	result, err := config.K3s.CoreV1().Services(c.DefaultQuery("namespace", metaV1.NamespaceAll)).List(ctx, metaV1.ListOptions{})
+	result, err := config.K3s.CoreV1().Services(c.Param("namespace")).List(ctx, metaV1.ListOptions{})
 
 	if err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
