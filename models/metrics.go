@@ -1,11 +1,11 @@
 package models
 
-import "time"
+import (
+	"api/interfaces"
+	"time"
 
-const (
-	MILLI = "milli"
-	MICRO = "micro"
-	NANO  = "nano"
+	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
 )
 
 type Metrics struct {
@@ -18,4 +18,26 @@ type Metrics struct {
 	CpuScale      uint8     `gorm:"not null" json:"cpu_scale" xml:"cpu_scale" example:"3"`
 	Memory        int64     `gorm:"not null" json:"memory" xml:"memory" example:"690791"`
 	MemoryScale   uint8     `gorm:"not null" json:"memory_scale" xml:"memory_scale" example:"6"`
+
+	ProjectID      uint32 `gorm:"foreignKey:ProjectID;not null" json:"project_id" xml:"project_id" example:"1"`
+	SubscriptionID uint32 `gorm:"foreignKey:SubscriptionID;not null" json:"subscription_id" xml:"subscription_id" example:"1"`
+}
+
+func NewMetrics() interfaces.Table {
+	return &Metrics{}
+}
+
+func (*Metrics) TableName() string {
+	return "metrics"
+}
+
+func (c *Metrics) Migrate(db *gorm.DB, forced bool) {
+	if forced {
+		db.Migrator().DropTable(c)
+	}
+	db.AutoMigrate(c)
+}
+
+func (*Metrics) Redis(*gorm.DB, *redis.Client) error {
+	return nil
 }
