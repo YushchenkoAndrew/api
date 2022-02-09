@@ -1,6 +1,14 @@
 package models
 
-import "time"
+import (
+	"api/interfaces"
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
+)
 
 type File struct {
 	ID        uint32    `gorm:"type:bigint;primary_key,AUTO_INCREMENT" json:"id" xml:"id"`
@@ -13,8 +21,30 @@ type File struct {
 	// Project   Project   `gorm:""`
 }
 
+func NewFile() interfaces.Table {
+	return &File{}
+}
+
 func (*File) TableName() string {
 	return "file"
+}
+
+func (c *File) Migrate(db *gorm.DB, forced bool) {
+	if forced {
+		db.Migrator().DropTable(c)
+	}
+	db.AutoMigrate(c)
+}
+
+func (c *File) Redis(db *gorm.DB, client *redis.Client) error {
+	var value int64
+	db.Model(c).Count(&value)
+
+	if err := client.Set(context.Background(), "nFile", value, 0).Err(); err != nil {
+		return fmt.Errorf("[Redis] Error happed while setting value to Cache: %v", err)
+	}
+
+	return nil
 }
 
 type ReqFile struct {

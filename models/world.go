@@ -1,6 +1,14 @@
 package models
 
-import "time"
+import (
+	"api/interfaces"
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
+)
 
 type World struct {
 	ID        uint32    `gorm:"type:bigint;primary_key,AUTO_INCREMENT" json:"id" xml:"id"`
@@ -9,8 +17,30 @@ type World struct {
 	Visitors  uint16    `gorm:"default:0" json:"visitors" xml:"visitors" example:"5"`
 }
 
+func NewWorld() interfaces.Table {
+	return &World{}
+}
+
 func (*World) TableName() string {
 	return "world"
+}
+
+func (c *World) Migrate(db *gorm.DB, forced bool) {
+	if forced {
+		db.Migrator().DropTable(c)
+	}
+	db.AutoMigrate(c)
+}
+
+func (c *World) Redis(db *gorm.DB, client *redis.Client) error {
+	var value int64
+	db.Model(c).Count(&value)
+
+	if err := client.Set(context.Background(), "nWorld", value, 0).Err(); err != nil {
+		return fmt.Errorf("[Redis] Error happed while setting value to Cache: %v", err)
+	}
+
+	return nil
 }
 
 type ReqWorld struct {

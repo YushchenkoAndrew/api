@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"api/config"
+	"api/interfaces"
 	"api/logs"
 	"api/models"
 
@@ -13,8 +14,8 @@ import (
 
 var Redis *redis.Client
 
-func ConnectToRedis() {
-	Redis = redis.NewClient(&redis.Options{
+func ConnectToRedis(tables []interfaces.Table) {
+	Redis := redis.NewClient(&redis.Options{
 		Addr:     config.ENV.RedisHost + ":" + config.ENV.RedisPort,
 		Password: config.ENV.RedisPass,
 	})
@@ -30,35 +31,13 @@ func ConnectToRedis() {
 		})
 		panic("Failed on Redis connection")
 	}
-}
 
-func RedisInitDefault() {
-	var nInfo int64
-	var nWorld int64
-	var nFile int64
-	var nLink int64
-	var nProject int64
-
-	DB.Model(&models.Info{}).Count(&nInfo)
-	DB.Model(&models.World{}).Count(&nWorld)
-	DB.Model(&models.File{}).Count(&nFile)
-	DB.Model(&models.Link{}).Count(&nLink)
-	DB.Model(&models.Project{}).Count(&nProject)
-
-	// FIXME: ERROR log format
-	ctx := context.Background()
-	var SetVar = func(ctx *context.Context, param string, value interface{}) {
-		if err := Redis.Set(*ctx, param, value, 0).Err(); err != nil {
-			fmt.Println("[Redis] Error happed while setting value to Cache")
+	Redis.Set(ctx, "Mutex", 1, 0)
+	for _, table := range tables {
+		if err := table.Redis(DB, Redis); err != nil {
+			panic(err)
 		}
 	}
-
-	SetVar(&ctx, "nInfo", nInfo)
-	SetVar(&ctx, "nWorld", nWorld)
-	SetVar(&ctx, "nFile", nFile)
-	SetVar(&ctx, "nLink", nLink)
-	SetVar(&ctx, "nProject", nFile)
-	SetVar(&ctx, "Mutex", 1)
 }
 
 func FlushValue(key string) {

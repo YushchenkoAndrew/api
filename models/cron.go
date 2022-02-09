@@ -1,15 +1,15 @@
 package models
 
 type CronCreateDto struct {
-	CronTime string `json:"cronTime" xml:"cronTime" example:"00 00 00 */1 * *"`
+	CronTime string `json:"cron_time" xml:"cron_time" example:"00 00 00 */1 * *"`
 	URL      string `json:"url" xml:"url" example:"http://127.0.0.1:8000/ping"`
 	Method   string `json:"method" xml:"method" example:"post"`
-	ApiKey   string `json:"apiKey" xml:"apiKey" example:"post"`
-	Data     string `json:"data,omitempty" xml:"data" example:""`
+	Key      string `json:"key" xml:"key" example:"post"`
+	Data     string `json:"data,omitempty" xml:"data" example:"{'data' : 'Hello world'}"`
 }
 
 type CronRes struct {
-	ID        string        `json:"id" xml:"id"`
-	CreatedAt string        `json:"createdAt" xml:"createdAt" example:"Mon Jan 31 2022 00:00:00 GMT+0000 (Coordinated Universal Time)"`
+	ID        string        `json:"id" xml:"id" example:"d266389ebf09e1e8a95a5b4286b504b2"`
+	CreatedAt string        `json:"created_at" xml:"created_at" example:"Mon Jan 31 2022 00:00:00 GMT+0000 (Coordinated Universal Time)"`
 	Exec      CronCreateDto `json:"exec" xml:"exec"`
 }
