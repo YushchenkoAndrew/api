@@ -6,10 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	SUBSCRIBE_TIME = "00 00 */4 * * *"
-)
-
 type k3sController struct{}
 
 func NewK3sController() interfaces.K3s {
