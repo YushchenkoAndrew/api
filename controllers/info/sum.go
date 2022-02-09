@@ -61,7 +61,7 @@ func (o *sumController) Read(c *gin.Context) {
 	items, err := db.Redis.Get(ctx, "nInfo").Int64()
 	if err != nil {
 		items = -1
-		go db.RedisInitDefault()
+		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.SendLogs(&models.LogMessage{
 			Stat:    "ERR",
 			Name:    "API",
