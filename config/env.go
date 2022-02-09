@@ -1,6 +1,8 @@
 package config
 
 import (
+	"api/interfaces"
+
 	"github.com/spf13/viper"
 )
 
@@ -42,8 +44,9 @@ type EnvType struct {
 	RateLimit int `mapstructure:"RATE_LIMIT"`
 	RateTime  int `mapstructure:"RATE_TIME"`
 
-	BotUrl string `mapstructure:"BOT_URL"`
-	BotKey string `mapstructure:"BOT_KEY"`
+	BotUrl    string `mapstructure:"BOT_URL"`
+	BotKey    string `mapstructure:"BOT_KEY"`
+	BotPepper string `mapstructure:"BOT_Pepper"`
 
 	// Migration Settings
 	ForceMigrate  bool   `mapstructure:"FORCE_MIGRATE"`
@@ -53,10 +56,21 @@ type EnvType struct {
 	Metrics int `mapstructure:"METRICS_COUNT"`
 }
 
+// FIXME: I should fix this one day
 var ENV EnvType
 
-func LoadEnv(path string) {
-	viper.AddConfigPath(path)
+type envConfig struct {
+	path string
+}
+
+func NewEnvConfig(path string) func() interfaces.Config {
+	return func() interfaces.Config {
+		return &envConfig{path: path}
+	}
+}
+
+func (c *envConfig) Init() {
+	viper.AddConfigPath(c.path)
 	viper.SetConfigFile(".env")
 
 	viper.AutomaticEnv()

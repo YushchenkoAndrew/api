@@ -1,0 +1,8 @@
+cfg:
+  - name: metrics
+    method: post
+    path: /k3s/pods/metrics
+
+  - name: ping
+    method: get
+    path: /ping

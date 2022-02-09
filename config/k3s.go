@@ -1,6 +1,7 @@
 package config
 
 import (
+	"api/interfaces"
 	"flag"
 	"os"
 
@@ -14,14 +15,23 @@ var K3s *kubernetes.Clientset
 var K3sConfig *rest.Config
 var Metrics *metrics.Clientset
 
-func LoadK3s() {
-	// var config *rest.Config
+type k3sConfig struct {
+	path string
+}
+
+func NewK3sConfig(path string) func() interfaces.Config {
+	return func() interfaces.Config {
+		return &k3sConfig{path: path}
+	}
+}
+
+func (c *k3sConfig) Init() {
 	var err error
 
 	if os.Getenv("GIN_MODE") == "release" {
 		K3sConfig, err = rest.InClusterConfig()
 	} else {
-		kubeConfig := flag.String("kubeconfig", "./k3s.yaml", "kubeconfig file location")
+		kubeConfig := flag.String("kubeconfig", c.path, "kubeconfig file location")
 		K3sConfig, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"api/db"
 	"api/interfaces"
 	"api/middleware"
+	"api/models"
 	"api/routes"
 	"api/routes/info"
 	"api/routes/k3s"
@@ -31,13 +32,25 @@ import (
 // @host mortis-grimreaper.ddns.net:31337
 // @BasePath /api
 func main() {
-	config.Init()
+	cfg := config.NewConfig([]func() interfaces.Config{
+		config.NewEnvConfig("./"),
+		config.NewK3sConfig("./k3s.yaml"),
+		config.NewOperationConfig("./", "operations"),
+	})
 
-	db.ConnectToDB()
-	db.MigrateTables()
+	cfg.Init()
 
-	db.ConnectToRedis()
-	db.RedisInitDefault()
+	db.Init([]interfaces.Table{
+		models.NewProject(),
+		models.NewInfo(),
+		models.NewFile(),
+		models.NewLink(),
+		models.NewWorld(),
+		models.NewGeoIpBlocks(),
+		models.NewGeoIpLocations(),
+		models.NewSubscription(),
+		models.NewMetrics(),
+	})
 
 	r := gin.Default()
 	rg := r.Group(config.ENV.BasePath, middleware.Limit())
