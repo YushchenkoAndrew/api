@@ -12,7 +12,7 @@ type infoRouter struct {
 	route     *gin.RouterGroup
 	auth      *gin.RouterGroup
 	info      interfaces.Info
-	subRoutes *[]interfaces.Router
+	subRoutes []interfaces.Router
 }
 
 func NewInfoRouter(rg *gin.RouterGroup, handlers []func(*gin.RouterGroup) interfaces.Router) interfaces.Router {
@@ -25,7 +25,7 @@ func NewInfoRouter(rg *gin.RouterGroup, handlers []func(*gin.RouterGroup) interf
 		route:     rg.Group(("/info")),
 		auth:      rg.Group("/info", middleware.Auth()),
 		info:      c.NewInfoController(),
-		subRoutes: &subRoutes,
+		subRoutes: subRoutes,
 	}
 }
 
@@ -43,7 +43,7 @@ func (c *infoRouter) Init() {
 	c.auth.DELETE("", c.info.DeleteAll)
 	c.auth.DELETE("/:id", c.info.DeleteOne)
 
-	for _, route := range *c.subRoutes {
+	for _, route := range c.subRoutes {
 		route.Init()
 	}
 }

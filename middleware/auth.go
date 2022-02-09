@@ -165,17 +165,9 @@ func AuthToken() gin.HandlerFunc {
 
 		// Manially refresh token after each use
 		db.Redis.Del(ctx, "TOKEN:"+token)
-
 		salt := strconv.Itoa(rand.Intn(1000000) + 5000)
 
-		hasher = md5.New()
-		hasher.Write([]byte(salt + bearToken[1] + config.ENV.Pepper))
-		token = hex.EncodeToString(hasher.Sum(nil))
-
-		hasher = md5.New()
-		hasher.Write([]byte(token))
-
-		db.Redis.Set(ctx, "TOKEN:"+hex.EncodeToString(hasher.Sum(nil)), "OK", 0)
+		go helper.RegenerateToken(salt + bearToken[1])
 		helper.ResHandler(c, http.StatusOK, salt)
 	}
 }

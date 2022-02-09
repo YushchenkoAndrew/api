@@ -12,7 +12,7 @@ import (
 type podsRouter struct {
 	auth      *gin.RouterGroup
 	pods      k3s.Pods
-	subRoutes *[]interfaces.Router
+	subRoutes []interfaces.Router
 }
 
 func NewPodsRouterFactory(handlers []func(*gin.RouterGroup) interfaces.Router) func(*gin.RouterGroup) interfaces.Router {
@@ -27,7 +27,7 @@ func NewPodsRouterFactory(handlers []func(*gin.RouterGroup) interfaces.Router) f
 		return &podsRouter{
 			auth:      rg.Group("/pods", middleware.Auth()),
 			pods:      c.NewPodsController(),
-			subRoutes: &subRoutes,
+			subRoutes: subRoutes,
 		}
 	}
 }
@@ -39,7 +39,7 @@ func (c *podsRouter) Init() {
 	c.auth.GET("/:namespace", c.pods.ReadAll)
 	c.auth.GET("/:namespace/:name", c.pods.ReadOne)
 
-	for _, route := range *c.subRoutes {
+	for _, route := range c.subRoutes {
 		route.Init()
 	}
 }
