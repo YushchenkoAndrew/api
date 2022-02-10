@@ -4,7 +4,7 @@ type CronCreateDto struct {
 	CronTime string `json:"cron_time" xml:"cron_time" example:"00 00 00 */1 * *"`
 	URL      string `json:"url" xml:"url" example:"http://127.0.0.1:8000/ping"`
 	Method   string `json:"method" xml:"method" example:"post"`
-	Key      string `json:"key" xml:"key" example:"post"`
+	Token    string `json:"token" xml:"token" example:"HELLO_WORLD"`
 	Data     string `json:"data,omitempty" xml:"data" example:"{'data' : 'Hello world'}"`
 }
 

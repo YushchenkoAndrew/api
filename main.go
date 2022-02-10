@@ -41,15 +41,15 @@ func main() {
 	cfg.Init()
 
 	db.Init([]interfaces.Table{
-		models.NewProject(),
 		models.NewInfo(),
 		models.NewFile(),
 		models.NewLink(),
 		models.NewWorld(),
+		models.NewMetrics(),
+		models.NewProject(),
 		models.NewGeoIpBlocks(),
 		models.NewGeoIpLocations(),
 		models.NewSubscription(),
-		models.NewMetrics(),
 	})
 
 	r := gin.Default()
@@ -76,6 +76,8 @@ func main() {
 			k3s.NewNamespaceRouterFactory(),
 			k3s.NewServiceRouterFactory(),
 		}),
+
+		routes.NewSubscribeRouter(rg),
 	})
 
 	router.Init()

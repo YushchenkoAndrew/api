@@ -30,7 +30,7 @@ func ValidateStr(str1 string, str2 string) (equal bool) {
 func RegenerateToken(token string) {
 	// Create New Token
 	hasher := md5.New()
-	hasher.Write([]byte(token + config.ENV.Pepper))
+	hasher.Write([]byte(token + config.ENV.BotPepper))
 	result := hex.EncodeToString(hasher.Sum(nil))
 
 	// Hash it one more time

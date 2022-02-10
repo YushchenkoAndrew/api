@@ -9,8 +9,8 @@ import (
 )
 
 type Metrics struct {
-	ID            uint32    `gorm:"type:bigint;primary_key,AUTO_INCREMENT" json:"id" xml:"id"`
-	CreatedAt     time.Time `gorm:"default:CURRENT_DATE;unique" json:"created_at" xml:"created_at" example:"2021-08-06"`
+	ID            uint32    `gorm:"primaryKey" json:"id" xml:"id"`
+	CreatedAt     time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at" xml:"created_at" example:"2021-08-06"`
 	Name          string    `gorm:"not null" json:"name" xml:"name" example:"void-deployment-8985bd57d-k9n5g"`
 	Namespace     string    `gorm:"not null" json:"namespace" xml:"namespace" example:"void-deployment-8985bd57d-k9n5g"`
 	ContainerName string    `gorm:"not null" json:"container_name" xml:"container_name" example:"void"`

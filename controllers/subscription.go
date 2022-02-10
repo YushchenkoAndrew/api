@@ -61,13 +61,13 @@ func (*subscriptionController) CreateOne(c *gin.Context) {
 	token := hex.EncodeToString(hasher.Sum(nil))
 
 	var reqBody []byte
-	if reqBody, err = json.Marshal(models.CronCreateDto{
+	if reqBody, err = json.Marshal(&models.CronCreateDto{
 		CronTime: body.CronTime,
 		URL:      config.ENV.URL + handler.Path,
 		Method:   handler.Method,
-		Key:      token,
+		Token:    token,
 	}); err != nil {
-		fmt.Println("Ohh noo; Anyway")
+		fmt.Printf("Ohh noo; Anyway: %v", err)
 		return
 	}
 
@@ -76,8 +76,8 @@ func (*subscriptionController) CreateOne(c *gin.Context) {
 	hasher.Write([]byte(salt + config.ENV.BotKey))
 
 	var req *http.Request
-	if req, err = http.NewRequest("POST", config.ENV.BotUrl+"/cron?key="+hex.EncodeToString(hasher.Sum(nil)), bytes.NewBuffer(reqBody)); err != nil {
-		fmt.Println("Ohh noo; Anyway")
+	if req, err = http.NewRequest("POST", config.ENV.BotUrl+"/cron/subscribe?key="+hex.EncodeToString(hasher.Sum(nil)), bytes.NewBuffer(reqBody)); err != nil {
+		fmt.Printf("Ohh noo; Anyway: %v", err)
 		return
 	}
 
@@ -99,7 +99,7 @@ func (*subscriptionController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	var cron models.CronRes
+	var cron = models.CronRes{}
 	if err = json.NewDecoder(res.Body).Decode(&cron); err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong response")
 		return

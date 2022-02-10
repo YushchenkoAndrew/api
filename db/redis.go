@@ -15,7 +15,7 @@ import (
 var Redis *redis.Client
 
 func ConnectToRedis(tables []interfaces.Table) {
-	Redis := redis.NewClient(&redis.Options{
+	Redis = redis.NewClient(&redis.Options{
 		Addr:     config.ENV.RedisHost + ":" + config.ENV.RedisPort,
 		Password: config.ENV.RedisPass,
 	})

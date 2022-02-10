@@ -11,7 +11,7 @@ import (
 )
 
 type Project struct {
-	ID        uint32    `gorm:"type:bigint;primary_key,AUTO_INCREMENT" json:"id" xml:"id"`
+	ID        uint32    `gorm:"primaryKey" json:"id" xml:"id"`
 	CreatedAt time.Time `gorm:"default:CURRENT_DATE" json:"created_at" xml:"created_at" example:"2021-08-06"`
 	Name      string    `gorm:"not null;unique" json:"name" xml:"name" example:"CodeRain"`
 	Title     string    `gorm:"not null" json:"title" xml:"title" example:"Code Rain"`

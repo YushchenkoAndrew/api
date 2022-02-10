@@ -18,7 +18,7 @@ func SendLogs(message *models.LogMessage) {
 	var body []byte
 
 	if body, err = json.Marshal(*message); err != nil {
-		fmt.Println("Ohh noo; Anyway")
+		fmt.Printf("Ohh noo; Anyway: %v", err)
 		return
 	}
 
@@ -28,7 +28,7 @@ func SendLogs(message *models.LogMessage) {
 
 	var req *http.Request
 	if req, err = http.NewRequest("POST", config.ENV.BotUrl+"/logs/alert?key="+hex.EncodeToString(hasher.Sum(nil)), bytes.NewBuffer(body)); err != nil {
-		fmt.Println("Ohh noo; Anyway")
+		fmt.Printf("Ohh nyo; Anyway: %v", err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func SendLogs(message *models.LogMessage) {
 	client := &http.Client{}
 	res, err = client.Do(req)
 	if err != nil {
-		fmt.Println("Ohh noo; Anyway")
+		fmt.Printf("Ohh noo; Anyway: %v", err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func DefaultLog(file string, err interface{}) {
 		Stat:    "ERR",
 		Name:    "API",
 		File:    file,
-		Message: "Ohh nooo Cache is broken; Anyway...",
+		Message: "Ohh nooo something is broken; Anyway...",
 		Desc:    err,
 	})
 }
