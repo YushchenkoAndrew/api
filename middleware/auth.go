@@ -162,12 +162,13 @@ func AuthToken() gin.HandlerFunc {
 		c.Next()
 
 		// after request
+		if code := c.Writer.Status(); code == http.StatusOK || code == http.StatusCreated {
+			// Manially refresh token after each use
+			db.Redis.Del(ctx, "TOKEN:"+token)
+			salt := strconv.Itoa(rand.Intn(1000000) + 5000)
 
-		// Manially refresh token after each use
-		db.Redis.Del(ctx, "TOKEN:"+token)
-		salt := strconv.Itoa(rand.Intn(1000000) + 5000)
-
-		go helper.RegenerateToken(salt + bearToken[1])
-		helper.ResHandler(c, http.StatusOK, salt)
+			go helper.RegenerateToken(salt + bearToken[1])
+			helper.ResHandler(c, http.StatusOK, salt)
+		}
 	}
 }
