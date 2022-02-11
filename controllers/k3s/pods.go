@@ -88,7 +88,7 @@ func (*podsController) Exec(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status: "OK",
 		Result: string(outWriter.Result),
 	})
@@ -130,9 +130,9 @@ func (*podsController) ReadOne(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &[1]v1.Pod{*result},
+		Result: []v1.Pod{*result},
 		Items:  1,
 	})
 }
@@ -158,7 +158,7 @@ func (*podsController) ReadAll(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
 		Result: &result,
 		Items:  int64(len(result.Items)),

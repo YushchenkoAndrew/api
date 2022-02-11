@@ -86,7 +86,7 @@ func (*indexController) TraceIp(c *gin.Context) {
 		}
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
 		Result: &location,
 		Items:  int64(len(location)),

@@ -109,9 +109,9 @@ func (o *worldController) CreateOne(c *gin.Context) {
 
 	go db.FlushValue("World")
 
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
-		Result:     &model,
+		Result:     model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -195,9 +195,9 @@ func (o *worldController) CreateAll(c *gin.Context) {
 
 	// Make an update without stoping the response handler
 	go helper.RedisAdd(&ctx, "nWorld", int64(len(body)))
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
-		Result:     &model,
+		Result:     model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -251,9 +251,9 @@ func (*worldController) ReadOne(c *gin.Context) {
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &model,
+		Result:     model,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -325,9 +325,9 @@ func (o *worldController) ReadAll(c *gin.Context) {
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &model,
+		Result:     model,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -382,9 +382,9 @@ func (o *worldController) UpdateOne(c *gin.Context) {
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[1]models.World{model},
+		Result:     []models.World{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -442,9 +442,9 @@ func (o *worldController) UpdateAll(c *gin.Context) {
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[1]models.World{model},
+		Result:     []models.World{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -499,9 +499,9 @@ func (*worldController) DeleteOne(c *gin.Context) {
 	}
 
 	go db.Redis.Decr(ctx, "nWorld")
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[]string{},
+		Result:     []string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -555,9 +555,9 @@ func (o *worldController) DeleteAll(c *gin.Context) {
 	}
 
 	go helper.RedisSub(&ctx, "nWorld", result.RowsAffected)
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[]string{},
+		Result:     []string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})

@@ -49,9 +49,9 @@ func (*namespaceController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status: "OK",
-		Result: &[1]v1.Namespace{*result},
+		Result: []v1.Namespace{*result},
 		Items:  1,
 	})
 }
@@ -84,9 +84,9 @@ func (*namespaceController) ReadOne(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &[1]v1.Namespace{*result},
+		Result: []v1.Namespace{*result},
 		Items:  1,
 	})
 }
@@ -111,7 +111,7 @@ func (*namespaceController) ReadAll(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
 		Result: &result.Items,
 		Items:  int64(len(result.Items)),

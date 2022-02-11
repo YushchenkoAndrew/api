@@ -199,9 +199,9 @@ func (o *projectController) CreateOne(c *gin.Context) {
 	}
 
 	go db.Redis.Incr(ctx, "nProject")
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
-		Result:     &model,
+		Result:     model,
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -268,9 +268,9 @@ func (o *projectController) CreateAll(c *gin.Context) {
 	}
 
 	go helper.RedisAdd(&ctx, "nProject", result.RowsAffected)
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
-		Result:     &model,
+		Result:     model,
 		Items:      result.RowsAffected,
 		TotalItems: items + result.RowsAffected,
 	})
@@ -324,9 +324,9 @@ func (*projectController) ReadOne(c *gin.Context) {
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &project,
+		Result:     project,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -396,9 +396,9 @@ func (o *projectController) ReadAll(c *gin.Context) {
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &project,
+		Result:     project,
 		Page:       page,
 		Limit:      limit,
 		Items:      result.RowsAffected,
@@ -458,9 +458,9 @@ func (o *projectController) UpdateOne(c *gin.Context) {
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[1]models.Project{model},
+		Result:     []models.Project{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -521,9 +521,9 @@ func (o *projectController) UpdateAll(c *gin.Context) {
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[1]models.Project{model},
+		Result:     []models.Project{model},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -609,9 +609,9 @@ func (*projectController) DeleteOne(c *gin.Context) {
 	go db.FlushValue("Project")
 
 	go db.Redis.Decr(ctx, "nProject")
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[]string{},
+		Result:     []string{},
 		Items:      result.RowsAffected,
 		TotalItems: items,
 	})
@@ -696,9 +696,9 @@ func (o *projectController) DeleteAll(c *gin.Context) {
 	go db.FlushValue("Project")
 
 	go helper.RedisSub(&ctx, "nProject", result.RowsAffected)
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     &[]string{},
+		Result:     []string{},
 		Items:      result.RowsAffected,
 		TotalItems: items - result.RowsAffected,
 	})

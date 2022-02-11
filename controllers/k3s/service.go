@@ -55,9 +55,9 @@ func (*serviceController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusCreated, models.Success{
+	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status: "OK",
-		Result: &[1]v1.Service{*result},
+		Result: []v1.Service{*result},
 		Items:  1,
 	})
 }
@@ -98,9 +98,9 @@ func (*serviceController) ReadOne(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &[1]v1.Service{*result},
+		Result: []v1.Service{*result},
 		Items:  1,
 	})
 }
@@ -126,9 +126,9 @@ func (*serviceController) ReadAll(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &result.Items,
+		Result: result.Items,
 		Items:  int64(len(result.Items)),
 	})
 }
