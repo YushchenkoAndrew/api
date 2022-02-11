@@ -8,9 +8,13 @@ import (
 	"api/logs"
 	"api/models"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,21 +28,22 @@ func NewProjectController() interfaces.Default {
 }
 
 func (*projectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
-	sKeys := ""
-	result := db.DB
+	var keys = []string{}
+	client := db.DB
+
 	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
-		sKeys += "id"
-		result = result.Where("id = ?", id)
+		keys = append(keys, fmt.Sprintf("ID=%d", id))
+		client = client.Where("id = ?", id)
 	}
 
 	if name := c.DefaultQuery("name", ""); name != "" {
-		sKeys += "name"
-		result = result.Where("name = ?", name)
+		keys = append(keys, fmt.Sprintf("NAME=%s", name))
+		client = client.Where("name = ?", name)
 	}
 
 	if title := c.DefaultQuery("title", ""); title != "" {
-		sKeys += "title"
-		result = result.Where("title = ?", title)
+		keys = append(keys, fmt.Sprintf("TITLE=%s", title))
+		client = client.Where("title = ?", title)
 	}
 
 	start := c.DefaultQuery("start", "")
@@ -46,53 +51,74 @@ func (*projectController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 
 	switch helper.GetStat(start == "", end == "") {
 	case 0:
-		result = result.Where("created_at <= ? AND created_at >= ?", end, start)
-		sKeys = sKeys + "startend"
+		keys = append(keys, fmt.Sprintf("CREATED_AT<=%s:CREATED_AT>=%s", end, start))
+		client = client.Where("created_at <= ? AND created_at >= ?", end, start)
 
 	case 1:
-		result = result.Where("created_at >= ?", start)
-		sKeys = sKeys + "start"
+		keys = append(keys, fmt.Sprintf("CREATED_AT>=%s", start))
+		client = client.Where("created_at >= ?", start)
 
 	case 2:
-		result = result.Where("created_at <= ?", end)
-		sKeys = sKeys + "end"
+		keys = append(keys, fmt.Sprintf("CREATED_AT<=%s", end))
+		client = client.Where("created_at <= ?", end)
 
 	}
 
-	return result, sKeys
+	if len(keys) == 0 {
+		return client, ""
+	}
+
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	return client, hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (*projectController) filterFileQuery(c *gin.Context) (result []interface{}) {
-	var condition string = ""
-	var args []interface{}
+func (*projectController) filterFileQuery(c *gin.Context) ([]interface{}, string) {
+	var keys = []string{}
+
+	var args = []interface{}{}
+	var conditions = []string{}
 
 	if typeName := c.DefaultQuery("type", ""); typeName != "" {
-		condition = "type = ?"
+		keys = append(keys, fmt.Sprintf("TYPE=%s", typeName))
 		args = append(args, typeName)
+		conditions = append(conditions, "type = ?")
 	}
 
 	if role := c.DefaultQuery("role", ""); role != "" {
-		if condition == "" {
-			condition = "role = ?"
-		} else {
-			condition += "AND role = ?"
-		}
+		keys = append(keys, fmt.Sprintf("ROLE=%s", role))
 		args = append(args, role)
+		conditions = append(conditions, "role = ?")
 	}
 
-	if condition != "" {
-		result = append(append(result, condition), args...)
+	if len(conditions) == 0 {
+		return []interface{}{}, ""
 	}
 
-	return
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	return append([]interface{}{strings.Join(conditions, " AND ")}, args...), hex.EncodeToString(hasher.Sum(nil))
 }
 
-func (*projectController) filterLinkQuery(c *gin.Context) []interface{} {
+func (*projectController) filterLinkQuery(c *gin.Context) ([]interface{}, string) {
+	var keys = []string{}
+
+	var args = []interface{}{}
+	var conditions = []string{}
+
 	if name := c.DefaultQuery("link_name", ""); name != "" {
-		return []interface{}{"name = ?", name}
+		keys = append(keys, fmt.Sprintf("NAME=%s", name))
+		args = append(args, name)
+		conditions = append(conditions, "name = ?")
 	}
 
-	return []interface{}{}
+	if len(conditions) == 0 {
+		return []interface{}{}, ""
+	}
+
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	return append([]interface{}{strings.Join(conditions, " AND ")}, args...), hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (o *projectController) parseBody(body *models.ProjectDto, model *models.Project) bool {
@@ -181,24 +207,21 @@ func (o *projectController) CreateOne(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	db.Redis.Incr(ctx, "nProject")
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	db.Redis.Incr(ctx, "nPROJECT")
+	items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
-	go db.FlushValue("Project")
-	if len(model[0].Files) != 0 {
-		go db.FlushValue("File")
-	}
+	go db.FlushValue("LINK")
+	go db.FlushValue("FILE")
+	go db.FlushValue("METRICS")
+	go db.FlushValue("SUBSCRIPTION")
+	go db.FlushValue("PROJECT")
 
-	if len(model[0].Links) != 0 {
-		go db.FlushValue("Link")
-	}
-
-	go db.Redis.Incr(ctx, "nProject")
+	go db.Redis.Incr(ctx, "nPROJECT")
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -251,23 +274,20 @@ func (o *projectController) CreateAll(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
 	}
 
-	go db.FlushValue("Project")
-	if len(model[0].Files) != 0 {
-		go db.FlushValue("File")
-	}
+	go db.FlushValue("LINK")
+	go db.FlushValue("FILE")
+	go db.FlushValue("METRICS")
+	go db.FlushValue("SUBSCRIPTION")
+	go db.FlushValue("PROJECT")
 
-	if len(model[0].Links) != 0 {
-		go db.FlushValue("Link")
-	}
-
-	go helper.RedisAdd(&ctx, "nProject", result.RowsAffected)
+	go helper.RedisAdd(&ctx, "nPROJECT", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -289,36 +309,24 @@ func (o *projectController) CreateAll(c *gin.Context) {
 // @Router /project/{name} [get]
 func (*projectController) ReadOne(c *gin.Context) {
 	var name string
-	var project []models.Project
+	var model []models.Project
 
 	if name = c.Param("name"); name == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id value")
 		return
 	}
 
-	ctx := context.Background()
-	key := "Project:" + name
-	// Check if cache have requested data
-	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-		json.Unmarshal([]byte(data), &project)
-		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-	} else {
-		result := db.DB.Where("name = ?", name).Preload("Files").Preload("Links").Find(&project)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/project.go", result.Error)
-			return
-		}
-
-		// Encode json to str
-		if str, err := json.Marshal(&project); err == nil {
-			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-		}
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("NAME=%s", name)))
+	if err := helper.PrecacheResult(fmt.Sprintf("PROJECT:%s", hex.EncodeToString(hasher.Sum(nil))), db.DB.Where("name = ?", name).Preload("Files").Preload("Links").Preload("Metrics").Preload("Subscription"), &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/project.go", err.Error())
+		return
 	}
 
 	var items int64
 	var err error
-	if items, err = db.Redis.Get(ctx, "nProject").Int64(); err != nil {
+	if items, err = db.Redis.Get(context.Background(), "nPROJECT").Int64(); err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/project.go", err.Error())
@@ -326,7 +334,7 @@ func (*projectController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     project,
+		Result:     model,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -353,43 +361,22 @@ func (*projectController) ReadOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /project [get]
 func (o *projectController) ReadAll(c *gin.Context) {
-	var project []models.Project
+	var model []models.Project
 	ctx := context.Background()
 
 	page, limit := helper.Pagination(c)
-	result, sKeys := o.filterQuery(c)
-	key := "Project:" + c.DefaultQuery(sKeys, "-1")
 
-	if sKeys == "id" || sKeys == "name" || sKeys == "start" || sKeys == "end" {
-		// Check if cache have requested data
-		if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-			json.Unmarshal([]byte(data), &project)
-			go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
+	result, suffix := o.filterQuery(c)
+	fileCondition, fileSuffix := o.filterFileQuery(c)
+	linkCondition, linkSufix := o.filterLinkQuery(c)
 
-			// Update artificially update rows Affected value
-			result.RowsAffected = 1
-		}
+	if err := helper.PrecacheResult(fmt.Sprintf("PROJECT:%s:%s:%s:%d:%d", suffix, fileSuffix, linkSufix, page, limit), result.Offset(page*config.ENV.Items).Limit(limit).Preload("Files", fileCondition...).Preload("Links", linkCondition...), &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/project.go", err.Error())
+		return
 	}
 
-	if len(project) == 0 {
-		fileCondition := o.filterFileQuery(c)
-		linkCondition := o.filterLinkQuery(c)
-		result = result.Offset(page*config.ENV.Items).Limit(limit).Preload("Files", fileCondition...).Preload("Links", linkCondition...).Find(&project)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/project.go", result.Error)
-			return
-		}
-
-		if sKeys == "id" || sKeys == "name" || sKeys == "title" || sKeys == "start" || sKeys == "end" {
-			// Encode json to str
-			if str, err := json.Marshal(&project); err == nil {
-				go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-			}
-		}
-	}
-
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
@@ -398,10 +385,10 @@ func (o *projectController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     project,
+		Result:     model,
 		Page:       page,
 		Limit:      limit,
-		Items:      result.RowsAffected,
+		Items:      int64(len(model)),
 		TotalItems: items,
 	})
 }
@@ -448,10 +435,14 @@ func (o *projectController) UpdateOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Project")
+	go db.FlushValue("LINK")
+	go db.FlushValue("FILE")
+	go db.FlushValue("METRICS")
+	go db.FlushValue("SUBSCRIPTION")
+	go db.FlushValue("PROJECT")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
@@ -510,11 +501,15 @@ func (o *projectController) UpdateAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Project")
+	go db.FlushValue("LINK")
+	go db.FlushValue("FILE")
+	go db.FlushValue("METRICS")
+	go db.FlushValue("SUBSCRIPTION")
+	go db.FlushValue("PROJECT")
 
 	var items int64
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
@@ -593,7 +588,7 @@ func (*projectController) DeleteOne(c *gin.Context) {
 	}
 
 	db.Redis.Del(ctx, key)
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
+	items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Project{}).Redis(db.DB, db.Redis)
@@ -605,10 +600,13 @@ func (*projectController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("File")
-	go db.FlushValue("Project")
+	go db.FlushValue("LINK")
+	go db.FlushValue("FILE")
+	go db.FlushValue("METRICS")
+	go db.FlushValue("SUBSCRIPTION")
+	go db.FlushValue("PROJECT")
 
-	go db.Redis.Decr(ctx, "nProject")
+	go db.Redis.Decr(ctx, "nPROJECT")
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},
@@ -635,71 +633,72 @@ func (*projectController) DeleteOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /project [delete]
 func (o *projectController) DeleteAll(c *gin.Context) {
-	var sKeys string
-	var result *gorm.DB
-	var project []models.Project
+	// FIXME::
+	// var sKeys string
+	// var result *gorm.DB
+	// var project []models.Project
 
-	if result, sKeys = o.filterQuery(c); sKeys == "" {
-		helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
-		return
-	}
+	// if result, sKeys = o.filterQuery(c); sKeys == "" {
+	// 	helper.ErrHandler(c, http.StatusBadRequest, "Query not founded")
+	// 	return
+	// }
 
-	ctx := context.Background()
-	key := "Project:" + c.DefaultQuery(sKeys, "-1")
-	if sKeys == "id" || sKeys == "name" || sKeys == "start" || sKeys == "end" {
-		// Check if cache have requested data
-		if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-			json.Unmarshal([]byte(data), &project)
-			go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-		}
-	}
+	// ctx := context.Background()
+	// key := "Project:" + c.DefaultQuery(sKeys, "-1")
+	// if sKeys == "id" || sKeys == "name" || sKeys == "start" || sKeys == "end" {
+	// 	// Check if cache have requested data
+	// 	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
+	// 		json.Unmarshal([]byte(data), &project)
+	// 		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
+	// 	}
+	// }
 
-	if len(project) == 0 {
-		if result := result.Find(&project); result.Error != nil || len(project) == 0 {
-			helper.ErrHandler(c, http.StatusRequestedRangeNotSatisfiable, "Such record doesn't exist within db")
-			go logs.DefaultLog("/controllers/project.go", result.Error)
-			return
-		}
-	}
+	// if len(project) == 0 {
+	// 	if result := result.Find(&project); result.Error != nil || len(project) == 0 {
+	// 		helper.ErrHandler(c, http.StatusRequestedRangeNotSatisfiable, "Such record doesn't exist within db")
+	// 		go logs.DefaultLog("/controllers/project.go", result.Error)
+	// 		return
+	// 	}
+	// }
 
-	// Delete in both place Files & Project
-	if result := db.DB.Where("project_id = ?", project[0].ID).Delete(&models.File{}); result.Error != nil {
-		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.DefaultLog("/controllers/project.go", result.Error)
-		return
-	}
+	// // Delete in both place Files & Project
+	// if result := db.DB.Where("project_id = ?", project[0].ID).Delete(&models.File{}); result.Error != nil {
+	// 	helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+	// 	go logs.DefaultLog("/controllers/project.go", result.Error)
+	// 	return
+	// }
 
-	result = result.Delete(&models.Project{})
-	if result.Error != nil {
-		helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-		go logs.DefaultLog("/controllers/project.go", result.Error)
-		return
-	}
+	// result = result.Delete(&models.Project{})
+	// if result.Error != nil {
+	// 	helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
+	// 	go logs.DefaultLog("/controllers/project.go", result.Error)
+	// 	return
+	// }
 
-	if sKeys == "id" || sKeys == "name" || sKeys == "title" {
-		db.Redis.Del(ctx, "Project:"+c.DefaultQuery(sKeys, ""))
-	}
+	// if sKeys == "id" || sKeys == "name" || sKeys == "title" {
+	// 	db.Redis.Del(ctx, "Project:"+c.DefaultQuery(sKeys, ""))
+	// }
 
-	items, err := db.Redis.Get(ctx, "nProject").Int64()
-	if err != nil {
-		items = -1
-		go (&models.Project{}).Redis(db.DB, db.Redis)
-		go logs.DefaultLog("/controllers/project.go", err.Error())
-	}
+	// items, err := db.Redis.Get(ctx, "nPROJECT").Int64()
+	// if err != nil {
+	// 	items = -1
+	// 	go (&models.Project{}).Redis(db.DB, db.Redis)
+	// 	go logs.DefaultLog("/controllers/project.go", err.Error())
+	// }
 
-	if items == 0 {
-		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
-		return
-	}
+	// if items == 0 {
+	// 	helper.ErrHandler(c, http.StatusBadRequest, "Incorrect request")
+	// 	return
+	// }
 
-	go db.FlushValue("File")
-	go db.FlushValue("Project")
+	// go db.FlushValue("File")
+	// go db.FlushValue("Project")
 
-	go helper.RedisSub(&ctx, "nProject", result.RowsAffected)
-	helper.ResHandler(c, http.StatusOK, &models.Success{
-		Status:     "OK",
-		Result:     []string{},
-		Items:      result.RowsAffected,
-		TotalItems: items - result.RowsAffected,
-	})
+	// go helper.RedisSub(&ctx, "nProject", result.RowsAffected)
+	// helper.ResHandler(c, http.StatusOK, &models.Success{
+	// 	Status:     "OK",
+	// 	Result:     []string{},
+	// 	Items:      result.RowsAffected,
+	// 	TotalItems: items - result.RowsAffected,
+	// })
 }

@@ -8,10 +8,12 @@ import (
 	"api/logs"
 	"api/models"
 	"context"
-	"encoding/json"
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
 	"net/http"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -24,27 +26,30 @@ func NewWorldController() interfaces.Default {
 }
 
 func (*worldController) filterQuery(c *gin.Context) (*gorm.DB, string) {
-	sKeys := ""
-	result := db.DB
-	id, err := strconv.Atoi(c.DefaultQuery("id", "-1"))
-	if err == nil && id > 0 {
-		sKeys += "id"
-		result = result.Where("id = ?", id)
+	var keys = []string{}
+	client := db.DB
+	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
+		keys = append(keys, fmt.Sprintf("ID=%d", id))
+		client = client.Where("id = ?", id)
 	}
 
-	updatedAll := c.DefaultQuery("updated_at", "")
-	if updatedAll != "" {
-		sKeys += "updated_at"
-		result = result.Where("updated_at = ?", updatedAll)
+	if updatedAll := c.DefaultQuery("updated_at", ""); updatedAll != "" {
+		keys = append(keys, fmt.Sprintf("UPDATED_AT=%s", updatedAll))
+		client = client.Where("updated_at = ?", updatedAll)
 	}
 
-	country := c.DefaultQuery("country", "")
-	if country != "" {
-		sKeys += "country"
-		result = result.Where("country = ?", country)
+	if country := c.DefaultQuery("country", ""); country != "" {
+		keys = append(keys, fmt.Sprintf("COUNTRY=%s", country))
+		client = client.Where("country = ?", country)
 	}
 
-	return result, sKeys
+	if len(keys) == 0 {
+		return client, ""
+	}
+
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	return client, hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (*worldController) parseBody(body *models.WorldDto, model *models.World) {
@@ -89,7 +94,7 @@ func (o *worldController) CreateOne(c *gin.Context) {
 	o.parseBody(&body, &model[0])
 	if result.RowsAffected == 0 {
 		result = db.DB.Create(&model)
-		db.Redis.Incr(ctx, "nWorld")
+		db.Redis.Incr(ctx, "nWORLD")
 	} else {
 		result = db.DB.Where("country = ?", body.Country).Updates(&model[0])
 	}
@@ -107,7 +112,7 @@ func (o *worldController) CreateOne(c *gin.Context) {
 		go logs.DefaultLog("/controllers/world.go", err.Error())
 	}
 
-	go db.FlushValue("World")
+	go db.FlushValue("WORLD")
 
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
@@ -183,10 +188,10 @@ func (o *worldController) CreateAll(c *gin.Context) {
 		}
 	}
 
-	go db.FlushValue("World")
+	go db.FlushValue("WORLD")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nWorld").Int64()
+	items, err := db.Redis.Get(ctx, "nWORLD").Int64()
 	if err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
@@ -194,7 +199,7 @@ func (o *worldController) CreateAll(c *gin.Context) {
 	}
 
 	// Make an update without stoping the response handler
-	go helper.RedisAdd(&ctx, "nWorld", int64(len(body)))
+	go helper.RedisAdd(&ctx, "nWORLD", int64(len(body)))
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -223,29 +228,17 @@ func (*worldController) ReadOne(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
-	key := "World:" + strconv.Itoa(id)
-	// Check if cache have requested data
-	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-		json.Unmarshal([]byte(data), &model)
-		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-	} else {
-		result := db.DB.Where("id = ?", id).Find(&model)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/world.go", result.Error)
-			return
-		}
-
-		// Encode json to str
-		if str, err := json.Marshal(&model); err == nil {
-			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-		}
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("ID=%d", id)))
+	if err := helper.PrecacheResult(fmt.Sprintf("WORLD:%s", hex.EncodeToString(hasher.Sum(nil))), db.DB.Where("id = ?", id), &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/world.go", err.Error())
+		return
 	}
 
 	var items int64
 	var err error
-	if items, err = db.Redis.Get(ctx, "nWorld").Int64(); err != nil {
+	if items, err = db.Redis.Get(context.Background(), "nWORLD").Int64(); err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/world.go", err.Error())
@@ -276,49 +269,20 @@ func (*worldController) ReadOne(c *gin.Context) {
 // @Router /world [get]
 func (o *worldController) ReadAll(c *gin.Context) {
 	var model []models.World
-	ctx := context.Background()
-
 	page, limit := helper.Pagination(c)
-	result, sKeys := o.filterQuery(c)
-	key := "World:" + c.DefaultQuery(sKeys, "-1")
 
 	// NOTE: Maybe add this feature at some point
 	// orderBy := c.DefaultQuery("orderBy", "")
 	// desc := c.DefaultQuery("desc", "") != ""
 
-	if sKeys == "id" || sKeys == "updated_at" {
-		// Check if cache have requested data
-		if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-			json.Unmarshal([]byte(data), &model)
-			go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-
-			// Update artificially update rows Affected value
-			result.RowsAffected = 1
-		}
+	client, suffix := o.filterQuery(c)
+	if err := helper.PrecacheResult(fmt.Sprintf("WORLD:%s", suffix), client.Offset(page*config.ENV.Items).Limit(limit), &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/world.go", err.Error())
+		return
 	}
 
-	if len(model) == 0 {
-		if page != -1 {
-			result = result.Offset(page * config.ENV.Items).Limit(limit).Find(&model)
-		} else {
-			result = result.Find(&model)
-		}
-
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/world.go", result.Error)
-			return
-		}
-
-		if sKeys == "id" || sKeys == "updated_at" {
-			// Encode json to str
-			if str, err := json.Marshal(&model); err == nil {
-				go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-			}
-		}
-	}
-
-	items, err := db.Redis.Get(ctx, "nWorld").Int64()
+	items, err := db.Redis.Get(context.Background(), "nWORLD").Int64()
 	if err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
@@ -330,7 +294,7 @@ func (o *worldController) ReadAll(c *gin.Context) {
 		Result:     model,
 		Page:       page,
 		Limit:      limit,
-		Items:      result.RowsAffected,
+		Items:      int64(len(model)),
 		TotalItems: items,
 	})
 }
@@ -372,10 +336,10 @@ func (o *worldController) UpdateOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("World")
+	go db.FlushValue("WORLD")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nWorld").Int64()
+	items, err := db.Redis.Get(ctx, "nWORLD").Int64()
 	if err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
@@ -431,11 +395,11 @@ func (o *worldController) UpdateAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("World")
+	go db.FlushValue("WORLD")
 
 	var items int64
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nWorld").Int64()
+	items, err := db.Redis.Get(ctx, "nWORLD").Int64()
 	if err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
@@ -483,10 +447,10 @@ func (*worldController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("World")
+	go db.FlushValue("WORLD")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nWorld").Int64()
+	items, err := db.Redis.Get(ctx, "nWORLD").Int64()
 	if err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
@@ -498,7 +462,7 @@ func (*worldController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.Redis.Decr(ctx, "nWorld")
+	go db.Redis.Decr(ctx, "nWORLD")
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},
@@ -539,10 +503,10 @@ func (o *worldController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("World")
+	go db.FlushValue("WORLD")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nWorld").Int64()
+	items, err := db.Redis.Get(ctx, "nWORLD").Int64()
 	if err != nil {
 		items = -1
 		go (&models.World{}).Redis(db.DB, db.Redis)
@@ -554,7 +518,7 @@ func (o *worldController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go helper.RedisSub(&ctx, "nWorld", result.RowsAffected)
+	go helper.RedisSub(&ctx, "nWORLD", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},

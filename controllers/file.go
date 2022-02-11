@@ -313,7 +313,7 @@ func (o *fileController) ReadAll(c *gin.Context) {
 	page, limit := helper.Pagination(c)
 
 	client, suffix := o.filterQuery(c)
-	if err := helper.PrecacheResult(fmt.Sprintf("FILE:%s", suffix), client, &model); err != nil {
+	if err := helper.PrecacheResult(fmt.Sprintf("FILE:%s:%d:%d", suffix, page, limit), client.Offset(page*config.ENV.Items).Limit(limit), &model); err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
 		go logs.DefaultLog("/controllers/file.go", err.Error())
 		return

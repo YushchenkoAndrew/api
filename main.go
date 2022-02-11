@@ -42,14 +42,16 @@ func main() {
 
 	db.Init([]interfaces.Table{
 		models.NewInfo(),
-		models.NewFile(),
-		models.NewLink(),
 		models.NewWorld(),
-		models.NewMetrics(),
-		models.NewProject(),
+
 		models.NewGeoIpBlocks(),
 		models.NewGeoIpLocations(),
+
+		models.NewFile(),
+		models.NewLink(),
+		models.NewMetrics(),
 		models.NewSubscription(),
+		models.NewProject(),
 	})
 
 	r := gin.Default()
