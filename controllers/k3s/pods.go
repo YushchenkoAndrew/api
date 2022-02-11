@@ -160,7 +160,7 @@ func (*podsController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &result,
+		Result: result,
 		Items:  int64(len(result.Items)),
 	})
 }

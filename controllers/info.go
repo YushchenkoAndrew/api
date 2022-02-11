@@ -47,7 +47,7 @@ func (*infoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	}
 
 	if len(keys) == 0 {
-		return db.DB, ""
+		return client, ""
 	}
 
 	hasher := md5.New()

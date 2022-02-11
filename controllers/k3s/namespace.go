@@ -113,7 +113,7 @@ func (*namespaceController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &result.Items,
+		Result: result.Items,
 		Items:  int64(len(result.Items)),
 	})
 }

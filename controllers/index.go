@@ -11,7 +11,6 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -57,38 +56,27 @@ func (*indexController) TraceIp(c *gin.Context) {
 		return
 	}
 
-	key := "ip:" + ip
-	ctx := context.Background()
+	hasher := md5.New()
+	hasher.Write([]byte(ip))
+	key := fmt.Sprintf("IP:%s", hex.EncodeToString(hasher.Sum(nil)))
+
+	var block []models.GeoIpBlocks
+	if err := helper.PrecacheResult(fmt.Sprintf("%s:BLOCK", key), db.DB.Where("network >>= ?::inet", ip), &block); err != nil || len(block) == 0 {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/contlollers/index.go", err.Error())
+		return
+	}
+
 	var location []models.GeoIpLocations
-
-	// Check if cache have requested data
-	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-		json.Unmarshal([]byte(data), &location)
-		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-	} else {
-
-		var block []models.GeoIpBlocks
-		if result := db.DB.Where("network >>= ?::inet", ip).Find(&block); result.Error != nil || len(block) == 0 {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/index.go", result.Error)
-			return
-		}
-
-		if result := db.DB.Where("geoname_id = ?", block[0].GeonameId).Find(&location); result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/index.go", result.Error)
-			return
-		}
-
-		// Encode json to str
-		if str, err := json.Marshal(&location); err == nil {
-			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-		}
+	if err := helper.PrecacheResult(fmt.Sprintf("%s:LOCATION", key), db.DB.Where("geoname_id = ?", block[0].GeonameId), &location); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/contlollers/index.go", err.Error())
+		return
 	}
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &location,
+		Result: location,
 		Items:  int64(len(location)),
 	})
 }
