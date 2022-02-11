@@ -42,10 +42,10 @@ func ConnectToRedis(tables []interfaces.Table) {
 
 func FlushValue(key string) {
 	ctx := context.Background()
-	iter := Redis.Scan(ctx, 0, key+":*", 0).Iterator()
+	iter := Redis.Scan(ctx, 0, fmt.Sprintf("%s:*", key), 0).Iterator()
 
 	for iter.Next(ctx) {
-		Redis.Del(ctx, iter.Val())
+		go Redis.Del(ctx, iter.Val())
 	}
 
 	if err := iter.Err(); err != nil {

@@ -26,8 +26,7 @@ func NewMetricsRouterFactory() func(*gin.RouterGroup) interfaces.Router {
 
 func (c *metricsRouter) Init() {
 	c.auth.GET("", c.metrics.ReadAll)
-	c.auth.GET("/:namespace", c.metrics.ReadAll)
-	c.auth.GET("/:namespace/:name", c.metrics.ReadOne)
+	c.auth.GET("/:id", c.metrics.ReadOne)
 
-	c.authToken.POST("/:namespace/:name", c.metrics.CreateOne)
+	c.authToken.POST("/:namespace/:name/:id", c.metrics.CreateOne)
 }

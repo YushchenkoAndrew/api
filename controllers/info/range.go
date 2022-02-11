@@ -7,8 +7,11 @@ import (
 	"api/interfaces/info"
 	"api/logs"
 	"api/models"
-	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +37,6 @@ func NewRangeController() info.Default {
 // @Router /info/range [get]
 func (*rangeController) Read(c *gin.Context) {
 	var model []models.Info
-	ctx := context.Background()
 
 	page, limit := helper.Pagination(c)
 	orderBy := c.DefaultQuery("orderBy", "")
@@ -48,47 +50,47 @@ func (*rangeController) Read(c *gin.Context) {
 		return
 	}
 
-	result := db.DB.Offset(page * config.ENV.Items).Limit(limit)
+	var keys = []string{}
+	client := db.DB.Offset(page * config.ENV.Items).Limit(limit)
 	switch helper.GetStat(start == "", end == "") {
 	case 0:
-		result = result.Where("created_at <= ? AND created_at >= ?", end, start)
+		keys = append(keys, fmt.Sprintf("CREATED_AT<=%s:CREATED_AT=>%s", end, start))
+		client = client.Where("created_at <= ? AND created_at >= ?", end, start)
 
 	case 1:
-		result = result.Where("created_at >= ?", start)
+		keys = append(keys, fmt.Sprintf("CREATED_AT>=%s", start))
+		client = client.Where("created_at >= ?", start)
 
 	case 2:
-		result = result.Where("created_at <= ?", end)
+		keys = append(keys, fmt.Sprintf("CREATED_AT<=%s", end))
+		client = client.Where("created_at <= ?", end)
 
 	}
 
 	if orderBy != "" {
 		if desc {
-			result = result.Order(helper.ToSnakeCase(orderBy) + " DESC")
+			keys = append(keys, "DESC")
+			client = client.Order(helper.ToSnakeCase(orderBy) + " DESC")
 		} else {
-			result = result.Order(helper.ToSnakeCase(orderBy) + " ASC")
+			keys = append(keys, "ASC")
+			client = client.Order(helper.ToSnakeCase(orderBy) + " ASC")
 		}
 	}
 
-	result = result.Find(&model)
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
-	if err != nil || result == nil {
-		items = -1
-		go (&models.Info{}).Redis(db.DB, db.Redis)
-		go logs.SendLogs(&models.LogMessage{
-			Stat:    "ERR",
-			Name:    "API",
-			File:    "/controllers/info/range.go",
-			Message: "Ohh nooo Cache is broken; Anyway...",
-			Desc:    err.Error(),
-		})
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	if err := helper.PrecacheResult(fmt.Sprintf("INFO:RANGE:%s", hex.EncodeToString(hasher.Sum(nil))), client, model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/info/range.go", err.Error())
+		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
-		Status:     "OK",
-		Result:     &model,
-		Page:       page,
-		Limit:      limit,
-		Items:      result.RowsAffected,
-		TotalItems: items,
+	helper.ResHandler(c, http.StatusOK, &models.Success{
+		Status: "OK",
+		Result: model,
+		Page:   page,
+		Limit:  limit,
+		Items:  int64(len(model)),
+		// TotalItems: items,
 	})
 }

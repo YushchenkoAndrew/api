@@ -8,9 +8,13 @@ import (
 	"api/logs"
 	"api/models"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,24 +28,31 @@ func NewLinkController() interfaces.Default {
 }
 
 func (*linkController) filterQuery(c *gin.Context) (*gorm.DB, string) {
-	sKeys := ""
-	result := db.DB
+	var keys = []string{}
+	client := db.DB
+
 	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
-		sKeys += "id"
-		result = result.Where("id = ?", id)
+		keys = append(keys, fmt.Sprintf("ID=%d", id))
+		client = client.Where("id = ?", id)
 	}
 
 	if projectId, err := strconv.Atoi(c.DefaultQuery("project_id", "-1")); err == nil && projectId > 0 {
-		sKeys += "project_id"
-		result = result.Where("project_id = ?", projectId)
+		keys = append(keys, fmt.Sprintf("PROJECT_ID=%d", projectId))
+		client = client.Where("project_id = ?", projectId)
 	}
 
 	if name := c.DefaultQuery("name", ""); name != "" {
-		sKeys += "name"
-		result = result.Where("name = ?", name)
+		keys = append(keys, fmt.Sprintf("NAME=%s", name))
+		client = client.Where("name = ?", name)
 	}
 
-	return result, sKeys
+	if len(keys) == 0 {
+		return db.DB, ""
+	}
+
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	return client, hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (*linkController) parseBody(body *models.LinkDto, model *models.Link) {
@@ -85,10 +96,13 @@ func (o *linkController) CreateOne(c *gin.Context) {
 
 	var result = db.DB
 	var model []models.Link
-	ctx := context.Background()
+
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("ID=%d", id)))
+	var key = fmt.Sprintf("PROJECT:%s", hex.EncodeToString(hasher.Sum(nil)))
 
 	// Check if such project is exist
-	var key = "Project:" + strconv.Itoa(id)
+	ctx := context.Background()
 	if _, err := db.Redis.Get(ctx, key).Result(); err != nil {
 		var project []models.Project
 		if res := db.DB.Where("id = ?", id).Find(&project); res.RowsAffected == 0 {
@@ -116,17 +130,17 @@ func (o *linkController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Link")
+	go db.FlushValue("LINK")
 
-	db.Redis.Incr(ctx, "nLink")
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	db.Redis.Incr(ctx, "nLINK")
+	items, err := db.Redis.Get(ctx, "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go model[0].Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
-	go db.Redis.Incr(ctx, "nLink")
+	go db.Redis.Incr(ctx, "nLINK")
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -165,8 +179,11 @@ func (o *linkController) CreateAll(c *gin.Context) {
 		return
 	}
 
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("ID=%d", id)))
+	var key = fmt.Sprintf("PROJECT:%s", hex.EncodeToString(hasher.Sum(nil)))
+
 	ctx := context.Background()
-	var key = "Project:" + strconv.Itoa(id)
 	if _, err := db.Redis.Get(ctx, key).Result(); err != nil {
 		var project []models.Project
 		if res := db.DB.Where("id = ?", id).Find(&project); res.RowsAffected == 0 {
@@ -200,16 +217,16 @@ func (o *linkController) CreateAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Link")
+	go db.FlushValue("LINK")
 
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	items, err := db.Redis.Get(ctx, "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go model[0].Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
 	}
 
-	go helper.RedisAdd(&ctx, "nLink", result.RowsAffected)
+	go helper.RedisAdd(&ctx, "nLINK", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -231,36 +248,24 @@ func (o *linkController) CreateAll(c *gin.Context) {
 // @Router /link/{id} [get]
 func (*linkController) ReadOne(c *gin.Context) {
 	var id int
-	var links []models.Link
+	var model []models.Link
 
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id value")
 		return
 	}
 
-	ctx := context.Background()
-	key := "Link:" + strconv.Itoa(id)
-	// Check if cache have requested data
-	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-		json.Unmarshal([]byte(data), &links)
-		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-	} else {
-		result := db.DB.Where("id = ?", id).Find(&links)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/link.go", result.Error)
-			return
-		}
-
-		// Encode json to str
-		if str, err := json.Marshal(&links); err == nil {
-			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-		}
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("ID=%d", id)))
+	if err := helper.PrecacheResult(fmt.Sprintf("LINK:%s", hex.EncodeToString(hasher.Sum(nil))), db.DB.Where("id = ?", id), &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/link.go", err.Error())
+		return
 	}
 
 	var items int64
 	var err error
-	if items, err = db.Redis.Get(ctx, "nLink").Int64(); err != nil {
+	if items, err = db.Redis.Get(context.Background(), "nLINK").Int64(); err != nil {
 		items = -1
 		go (&models.Link{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/link.go", err.Error())
@@ -268,7 +273,7 @@ func (*linkController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     links,
+		Result:     model,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -290,41 +295,17 @@ func (*linkController) ReadOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /link [get]
 func (o *linkController) ReadAll(c *gin.Context) {
-	var links []models.Link
-	ctx := context.Background()
-
+	var model []models.Link
 	page, limit := helper.Pagination(c)
-	result, sKeys := o.filterQuery(c)
-	key := "Link:" + c.DefaultQuery(sKeys, "-1")
 
-	if sKeys == "id" || sKeys == "project_id" || sKeys == "name" {
-		// Check if cache have requested data
-		if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-			json.Unmarshal([]byte(data), &links)
-			go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-
-			// Update artificially update rows Affected value
-			result.RowsAffected = 1
-		}
+	client, suffix := o.filterQuery(c)
+	if err := helper.PrecacheResult(fmt.Sprintf("LINK:%s", suffix), client, &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/file.go", err.Error())
+		return
 	}
 
-	if len(links) == 0 {
-		result = result.Offset(page * config.ENV.Items).Limit(limit).Find(&links)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/link.go", result.Error)
-			return
-		}
-
-		if sKeys == "id" || sKeys == "project_id" || sKeys == "name" {
-			// Encode json to str
-			if str, err := json.Marshal(&links); err == nil {
-				go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-			}
-		}
-	}
-
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	items, err := db.Redis.Get(context.Background(), "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Link{}).Redis(db.DB, db.Redis)
@@ -333,10 +314,10 @@ func (o *linkController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     links,
+		Result:     model,
 		Page:       page,
 		Limit:      limit,
-		Items:      result.RowsAffected,
+		Items:      int64(len(model)),
 		TotalItems: items,
 	})
 }
@@ -378,10 +359,10 @@ func (o *linkController) UpdateOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Link")
+	go db.FlushValue("LINK")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	items, err := db.Redis.Get(ctx, "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Link{}).Redis(db.DB, db.Redis)
@@ -437,11 +418,11 @@ func (o *linkController) UpdateAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Link")
+	go db.FlushValue("LINK")
 
 	var items int64
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	items, err := db.Redis.Get(ctx, "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Link{}).Redis(db.DB, db.Redis)
@@ -489,10 +470,10 @@ func (*linkController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Link")
+	go db.FlushValue("LINK")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	items, err := db.Redis.Get(ctx, "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Link{}).Redis(db.DB, db.Redis)
@@ -504,7 +485,7 @@ func (*linkController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.Redis.Decr(ctx, "nLink")
+	go db.Redis.Decr(ctx, "nLINK")
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},
@@ -545,10 +526,10 @@ func (o *linkController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Link")
+	go db.FlushValue("LINK")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nLink").Int64()
+	items, err := db.Redis.Get(ctx, "nLINK").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Link{}).Redis(db.DB, db.Redis)
@@ -560,7 +541,7 @@ func (o *linkController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go helper.RedisSub(&ctx, "nFile", result.RowsAffected)
+	go helper.RedisSub(&ctx, "nLiNK", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},

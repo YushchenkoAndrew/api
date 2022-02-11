@@ -8,7 +8,10 @@ import (
 	"api/logs"
 	"api/models"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,27 +28,31 @@ func NewInfoController() interfaces.Info {
 }
 
 func (*infoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
-	sKeys := ""
-	result := db.DB
-	id, err := strconv.Atoi(c.DefaultQuery("id", "-1"))
-	if err == nil && id > 0 {
-		sKeys += "id"
-		result = result.Where("id = ?", id)
+	var keys = []string{}
+	client := db.DB
+
+	if id, err := strconv.Atoi(c.DefaultQuery("id", "-1")); err == nil && id > 0 {
+		keys = append(keys, fmt.Sprintf("ID=%d", id))
+		client = client.Where("id = ?", id)
 	}
 
-	createdAt := c.DefaultQuery("created_at", "")
-	if createdAt != "" {
-		sKeys += "created_at"
-		result = result.Where("created_at = ?", createdAt)
+	if createdAt := c.DefaultQuery("created_at", ""); createdAt != "" {
+		keys = append(keys, fmt.Sprintf("CREATED_AT=%s", createdAt))
+		client = client.Where("created_at = ?", createdAt)
 	}
 
-	countries := c.DefaultQuery("countries", "")
-	if countries != "" {
-		sKeys += "countries"
-		result = result.Where("countries IN ?", strings.Split(countries, ","))
+	if countries := c.DefaultQuery("countries", ""); countries != "" {
+		keys = append(keys, fmt.Sprintf("COUNTRIES=%s", countries))
+		client = client.Where("countries IN ?", strings.Split(countries, ","))
 	}
 
-	return result, sKeys
+	if len(keys) == 0 {
+		return db.DB, ""
+	}
+
+	hasher := md5.New()
+	hasher.Write([]byte(strings.Join(keys, ":")))
+	return client, hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (*infoController) parseBody(body *models.InfoDto, model *models.Info) {
@@ -104,18 +111,18 @@ func (o *infoController) Create(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Info")
+	go db.FlushValue("INFO")
 
 	ctx := context.Background()
-	db.Redis.Incr(ctx, "nInfo")
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	db.Redis.Incr(ctx, "nINFO")
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
-	go db.Redis.Del(ctx, "Info:Sum")
+	go db.Redis.Del(ctx, "INFO:SUM")
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -157,7 +164,10 @@ func (o *infoController) CreateOne(c *gin.Context) {
 	var model []models.Info
 	ctx := context.Background()
 
-	key := "Info:" + date
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("CREATED_AT=%s", created)))
+	key := fmt.Sprintf("INFO:%s", hex.EncodeToString(hasher.Sum(nil)))
+
 	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
 		json.Unmarshal([]byte(data), &model)
 		result.RowsAffected = int64(len(model))
@@ -169,7 +179,7 @@ func (o *infoController) CreateOne(c *gin.Context) {
 	o.parseBody(&body, &model[0])
 	if result.RowsAffected == 0 {
 		result = db.DB.Create(&model)
-		db.Redis.Incr(ctx, "nInfo")
+		db.Redis.Incr(ctx, "nINFO")
 	} else {
 		result = db.DB.Where("created_at = ?", date).Updates(&model[0])
 	}
@@ -185,9 +195,9 @@ func (o *infoController) CreateOne(c *gin.Context) {
 		go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
 	}
 
-	go db.FlushValue("Info")
+	go db.FlushValue("INFO")
 
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
@@ -195,7 +205,7 @@ func (o *infoController) CreateOne(c *gin.Context) {
 	}
 
 	// Make an update without stoping the response handler
-	go db.Redis.Del(ctx, "Info:Sum")
+	go db.Redis.Del(ctx, "INFO:SUM")
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -243,7 +253,7 @@ func (o *infoController) CreateAll(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
@@ -251,8 +261,8 @@ func (o *infoController) CreateAll(c *gin.Context) {
 	}
 
 	// Make an update without stoping the response handler
-	go db.Redis.Del(ctx, "Info:Sum")
-	go helper.RedisAdd(&ctx, "nInfo", result.RowsAffected)
+	go db.Redis.Del(ctx, "INFO:SUM")
+	go helper.RedisAdd(&ctx, "nINFO", result.RowsAffected)
 	helper.ResHandler(c, http.StatusCreated, &models.Success{
 		Status:     "OK",
 		Result:     model,
@@ -274,36 +284,23 @@ func (o *infoController) CreateAll(c *gin.Context) {
 // @Router /info/{id} [get]
 func (o *infoController) ReadOne(c *gin.Context) {
 	var id int
-	var info []models.Info
-
+	var model []models.Info
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id value")
 		return
 	}
 
-	ctx := context.Background()
-	key := "Info:" + strconv.Itoa(id)
-	// Check if cache have requested data
-	if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-		json.Unmarshal([]byte(data), &info)
-		go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-	} else {
-		result := db.DB.Where("id = ?", id).Find(&info)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/info.go", result.Error)
-			return
-		}
-
-		// Encode json to str
-		if str, err := json.Marshal(&info); err == nil {
-			go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-		}
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("ID=%d", id)))
+	if err := helper.PrecacheResult(fmt.Sprintf("INFO:%s", hex.EncodeToString(hasher.Sum(nil))), db.DB.Where("id = ?", id), &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/info.go", err.Error())
+		return
 	}
 
 	var items int64
 	var err error
-	if items, err = db.Redis.Get(ctx, "nInfo").Int64(); err != nil {
+	if items, err = db.Redis.Get(context.Background(), "nINFO").Int64(); err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
@@ -311,7 +308,7 @@ func (o *infoController) ReadOne(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     info,
+		Result:     model,
 		Items:      1,
 		TotalItems: items,
 	})
@@ -333,41 +330,17 @@ func (o *infoController) ReadOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /info [get]
 func (o *infoController) ReadAll(c *gin.Context) {
-	var info []models.Info
-	ctx := context.Background()
-
+	var model []models.Info
 	page, limit := helper.Pagination(c)
-	result, sKeys := o.filterQuery(c)
-	key := "Info:" + c.DefaultQuery(sKeys, "-1")
 
-	if sKeys == "id" || sKeys == "created_at" {
-		// Check if cache have requested data
-		if data, err := db.Redis.Get(ctx, key).Result(); err == nil {
-			json.Unmarshal([]byte(data), &info)
-			go db.Redis.Expire(ctx, key, time.Duration(config.ENV.LiveTime)*time.Second)
-
-			// Update artificially update rows Affected value
-			result.RowsAffected = 1
-		}
+	client, suffix := o.filterQuery(c)
+	if err := helper.PrecacheResult(fmt.Sprintf("INFO:%s", suffix), client, &model); err != nil {
+		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/file.go", err.Error())
+		return
 	}
 
-	if len(info) == 0 {
-		result = result.Offset(page * config.ENV.Items).Limit(limit).Find(&info)
-		if result.Error != nil {
-			helper.ErrHandler(c, http.StatusInternalServerError, "Server side error: Something went wrong")
-			go logs.DefaultLog("/controllers/info.go", result.Error)
-			return
-		}
-
-		if sKeys == "id" || sKeys == "created_at" {
-			// Encode json to str
-			if str, err := json.Marshal(&info); err == nil {
-				go db.Redis.Set(ctx, key, str, time.Duration(config.ENV.LiveTime)*time.Second)
-			}
-		}
-	}
-
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(context.Background(), "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
@@ -376,10 +349,10 @@ func (o *infoController) ReadAll(c *gin.Context) {
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
-		Result:     info,
+		Result:     model,
 		Page:       page,
 		Limit:      limit,
-		Items:      result.RowsAffected,
+		Items:      int64(len(model)),
 		TotalItems: items,
 	})
 }
@@ -421,17 +394,17 @@ func (o *infoController) UpdateOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Info")
+	go db.FlushValue("INFO")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
-	go db.Redis.Del(ctx, "Info:Sum")
+	go db.Redis.Del(ctx, "INFO:SUM")
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []models.Info{model},
@@ -481,18 +454,18 @@ func (o *infoController) UpdateAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Info")
+	go db.FlushValue("INFO")
 
 	var items int64
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
 		go logs.DefaultLog("/controllers/info.go", err.Error())
 	}
 
-	go db.Redis.Del(ctx, "Info:Sum")
+	go db.Redis.Del(ctx, "INFO:SUM")
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []models.Info{model},
@@ -534,10 +507,10 @@ func (o *infoController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Info")
+	go db.FlushValue("INFO")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
@@ -549,8 +522,8 @@ func (o *infoController) DeleteOne(c *gin.Context) {
 		return
 	}
 
-	go db.Redis.Decr(ctx, "nInfo")
-	go db.Redis.Del(ctx, "Info:Sum")
+	go db.Redis.Decr(ctx, "nINFO")
+	go db.Redis.Del(ctx, "INFO:SUM")
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},
@@ -591,10 +564,10 @@ func (o *infoController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go db.FlushValue("Info")
+	go db.FlushValue("INFO")
 
 	ctx := context.Background()
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)
@@ -606,8 +579,8 @@ func (o *infoController) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	go db.Redis.Del(ctx, "Info:Sum")
-	go helper.RedisSub(&ctx, "nInfo", result.RowsAffected)
+	go db.Redis.Del(ctx, "INFO:SUM")
+	go helper.RedisSub(&ctx, "nINFO", result.RowsAffected)
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status:     "OK",
 		Result:     []string{},
