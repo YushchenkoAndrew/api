@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -50,14 +49,17 @@ func (*metricsController) CreateAll(c *gin.Context) {}
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param name path string true "Specified name of Service"
+// @Param namespace path string true "Namespace of the Pod"
+// @Param name path string true "Specified name of the Pod"
+// @Param id path int true "Project primaray id"
 // @Param namespace path string true "Namespace name"
 // @Success 200 {object} models.Success{int}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
-// @failure 500 {object} models.Error
-// @Router /k3s/pod/metrics/{namespace}/{name} [get]
+// @failure 500 {object} models.Error[]
+// @Router /k3s/pod/metrics/{namespace}/{name}/{id} [get]
 func (*metricsController) CreateOne(c *gin.Context) {
+	var id int
 	var name string
 	var namespace string
 
@@ -71,6 +73,11 @@ func (*metricsController) CreateOne(c *gin.Context) {
 		return
 	}
 
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect project id param")
+		return
+	}
+
 	ctx := context.Background()
 	result, err := config.Metrics.MetricsV1beta1().PodMetricses(namespace).Get(ctx, name, metaV1.GetOptions{})
 	if err != nil {
@@ -79,7 +86,7 @@ func (*metricsController) CreateOne(c *gin.Context) {
 	}
 
 	var count int
-	key := fmt.Sprintf("METRICS:%s:%s", result.Namespace, result.Name)
+	key := fmt.Sprintf("METRICS:%s:%s:%d", result.Namespace, result.Name, id)
 	if count, err = db.Redis.Get(ctx, key).Int(); err != nil {
 		count = 0
 	}
@@ -87,26 +94,25 @@ func (*metricsController) CreateOne(c *gin.Context) {
 	if count < config.ENV.Metrics {
 		db.Redis.Incr(ctx, key)
 
-		for index, container := range result.Containers {
-			i := strconv.Itoa(index)
+		for i, container := range result.Containers {
 
 			var cpuArg int64
-			if cpuArg, err = db.Redis.Get(ctx, key+":CPU:"+i).Int64(); err != nil {
+			if cpuArg, err = db.Redis.Get(ctx, fmt.Sprintf("%s:CPU:%d", key, i)).Int64(); err != nil {
 				cpuArg = 0
 			}
 
 			var cpuArgScale int
-			if cpuArgScale, err = db.Redis.Get(ctx, key+":CPU:SCALE:"+i).Int(); err != nil {
+			if cpuArgScale, err = db.Redis.Get(ctx, fmt.Sprintf("%s:CPU:SCALE:%d", key, i)).Int(); err != nil {
 				cpuArgScale = -1
 			}
 
 			var memoryArg int64
-			if memoryArg, err = db.Redis.Get(ctx, key+":MEMORY:"+i).Int64(); err != nil {
+			if memoryArg, err = db.Redis.Get(ctx, fmt.Sprintf("%s:MEMORY:%d", key, i)).Int64(); err != nil {
 				memoryArg = 0
 			}
 
 			var memoryArgScale int
-			if memoryArgScale, err = db.Redis.Get(ctx, key+":MEMORY:SCALE:"+i).Int(); err != nil {
+			if memoryArgScale, err = db.Redis.Get(ctx, fmt.Sprintf("%s:MEMORY:SCALE:%d", key, i)).Int(); err != nil {
 				memoryArgScale = -1
 			}
 
@@ -115,11 +121,11 @@ func (*metricsController) CreateOne(c *gin.Context) {
 			cpu, cpuScale := getScaledValue(container.Usage.Cpu(), cpuArgScale)
 			memory, memoryScale := getScaledValue(container.Usage.Memory(), memoryArgScale)
 
-			db.Redis.Set(ctx, key+":CPU:"+i, cpuArg+cpu/int64(config.ENV.Metrics), 0)
-			db.Redis.Set(ctx, key+":MEMORY:"+i, memoryArg+memory/int64(config.ENV.Metrics), 0)
+			db.Redis.Set(ctx, fmt.Sprintf("%s:CPU:%d", key, i), cpuArg+cpu/int64(config.ENV.Metrics), 0)
+			db.Redis.Set(ctx, fmt.Sprintf("%s:MEMORY:%d", key, i), memoryArg+memory/int64(config.ENV.Metrics), 0)
 
-			db.Redis.Set(ctx, key+":CPU:SCALE:"+i, cpuScale, 0)
-			db.Redis.Set(ctx, key+":MEMORY:SCALE:"+i, memoryScale, 0)
+			db.Redis.Set(ctx, fmt.Sprintf("%s:CPU:SCALE:%d", key, i), cpuScale, 0)
+			db.Redis.Set(ctx, fmt.Sprintf("%s:MEMORY:SCALE:%d", key, i), memoryScale, 0)
 		}
 
 	} else {
@@ -127,26 +133,26 @@ func (*metricsController) CreateOne(c *gin.Context) {
 		model := make([]models.Metrics, len(result.Containers))
 
 		for i, container := range result.Containers {
-			index := strconv.Itoa(i)
+			model[i].ProjectID = uint32(id)
 
 			model[i].Name = result.Name
 			model[i].Namespace = result.Namespace
 			model[i].ContainerName = container.Name
 
-			model[i].CPU, _ = db.Redis.Get(ctx, key+":CPU:"+index).Int64()
-			model[i].Memory, _ = db.Redis.Get(ctx, key+":MEMORY:"+index).Int64()
+			model[i].CPU, _ = db.Redis.Get(ctx, fmt.Sprintf("%s:CPU:%d", key, i)).Int64()
+			model[i].Memory, _ = db.Redis.Get(ctx, fmt.Sprintf("%s:MEMORY:%d", key, i)).Int64()
 
-			cpuScale, _ := db.Redis.Get(ctx, key+":CPU:SCALE:"+index).Int()
-			memScale, _ := db.Redis.Get(ctx, key+":MEMORY:SCALE:"+index).Int()
+			cpuScale, _ := db.Redis.Get(ctx, fmt.Sprintf("%s:CPU:SCALE:%d", key, i)).Int()
+			memScale, _ := db.Redis.Get(ctx, fmt.Sprintf("%s:MEMORY:SCALE:%d", key, i)).Int()
 
 			model[i].CpuScale = uint8(cpuScale)
 			model[i].MemoryScale = uint8(memScale)
 
-			db.Redis.Del(ctx, key+":CPU:"+index)
-			db.Redis.Del(ctx, key+":MEMORY:"+index)
+			db.Redis.Del(ctx, fmt.Sprintf("%s:CPU:%d", key, i))
+			db.Redis.Del(ctx, fmt.Sprintf("%s:MEMORY:%d", key, i))
 
-			db.Redis.Del(ctx, key+":CPU:SCALE:"+index)
-			db.Redis.Del(ctx, key+":MEMORY:SCALE:"+index)
+			db.Redis.Del(ctx, fmt.Sprintf("%s:CPU:SCALE:%d", key, i))
+			db.Redis.Del(ctx, fmt.Sprintf("%s:MEMORY:SCALE:%d", key, i))
 		}
 
 		if result := db.DB.Create(&model); result.Error != nil || result.RowsAffected == 0 {
@@ -195,7 +201,7 @@ func (*metricsController) ReadOne(c *gin.Context) {
 	// 	return
 	// }
 
-	// helper.ResHandler(c, http.StatusOK, models.Success{
+	// helper.ResHandler(c, http.StatusOK, &models.Success{
 	// 	Status: "OK",
 	// 	Result: &[1]v1.PodMetrics{*result},
 	// 	Items:  1,
@@ -222,9 +228,9 @@ func (*metricsController) ReadAll(c *gin.Context) {
 		return
 	}
 
-	helper.ResHandler(c, http.StatusOK, models.Success{
+	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: &result.Items,
+		Result: result.Items,
 		Items:  int64(len(result.Items)),
 	})
 }

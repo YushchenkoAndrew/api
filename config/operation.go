@@ -13,23 +13,21 @@ const (
 )
 
 type Handler struct {
-	Method string
-	Path   string
-}
-
-var operations map[string]Handler
-
-func GetOperation(key string) (Handler, bool) {
-	value, ok := operations[key]
-	return value, ok
+	Name     string   `mapstructure:"name"`
+	Method   string   `mapstructure:"method"`
+	Path     string   `mapstructure:"path"`
+	Required []string `mapstructure:"required"`
 }
 
 type operation struct {
-	Cfg []struct {
-		Name   string `mapstructure:"name"`
-		Method string `mapstructure:"method"`
-		Path   string `mapstructure:"path"`
-	} `mapstructure:"cfg"`
+	Cfg []Handler `mapstructure:"cfg"`
+}
+
+var operations = make(map[string]Handler)
+
+func GetOperation(key string) (*Handler, bool) {
+	value, ok := operations[key]
+	return &value, ok
 }
 
 type operationConfig struct {
@@ -62,8 +60,7 @@ func (c *operationConfig) Init() {
 	}
 
 	// Form map
-	operations = make(map[string]Handler)
 	for _, cfg := range c.operations.Cfg {
-		operations[cfg.Name] = Handler{Method: cfg.Method, Path: cfg.Path}
+		operations[cfg.Name] = cfg
 	}
 }
