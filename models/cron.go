@@ -8,7 +8,7 @@ type CronCreateDto struct {
 	Data     string `json:"data,omitempty" xml:"data" example:"{'data' : 'Hello world'}"`
 }
 
-type CronRes struct {
+type CronEntity struct {
 	ID        string        `json:"id" xml:"id" example:"d266389ebf09e1e8a95a5b4286b504b2"`
 	CreatedAt string        `json:"created_at" xml:"created_at" example:"Mon Jan 31 2022 00:00:00 GMT+0000 (Coordinated Universal Time)"`
 	Exec      CronCreateDto `json:"exec" xml:"exec"`

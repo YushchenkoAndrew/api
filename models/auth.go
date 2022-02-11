@@ -9,12 +9,12 @@ type Auth struct {
 	RefreshExpire int64
 }
 
-type Login struct {
+type LoginDto struct {
 	User string `json:"user" xml:"user" binding:"required"`
 	Pass string `json:"pass" xml:"pass" binding:"required"`
 }
 
-type Tokens struct {
+type TokenEntity struct {
 	Status       string `json:"status" xml:"status" example:"OK"`
 	AccessToken  string `json:"access_token" xml:"access_token"`
 	RefreshToken string `json:"refresh_token" xml:"refresh_token" binding:"required"`

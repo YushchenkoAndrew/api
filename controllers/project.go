@@ -95,7 +95,7 @@ func (*projectController) filterLinkQuery(c *gin.Context) []interface{} {
 	return []interface{}{}
 }
 
-func (o *projectController) parseBody(body *models.ReqProject, model *models.Project) bool {
+func (o *projectController) parseBody(body *models.ProjectDto, model *models.Project) bool {
 	model.Name = body.Name
 	model.Title = body.Title
 	model.Desc = body.Desc
@@ -150,7 +150,7 @@ func (*projectController) parseLinkBody(body *models.Link, model *models.Link) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param model body models.ReqProject true "Project Data"
+// @Param model body models.ProjectDto true "Project Data"
 // @Success 201 {object} models.Success{result=[]models.Project}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -159,7 +159,7 @@ func (*projectController) parseLinkBody(body *models.Link, model *models.Link) {
 // @failure 500 {object} models.Error
 // @Router /project [post]
 func (o *projectController) CreateOne(c *gin.Context) {
-	var body models.ReqProject
+	var body models.ProjectDto
 	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Title == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
 		return
@@ -213,7 +213,7 @@ func (o *projectController) CreateOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param model body []models.ReqProject true "List of Project Data"
+// @Param model body []models.ProjectDto true "List of Project Data"
 // @Success 201 {object} models.Success{result=[]models.Project}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -222,7 +222,7 @@ func (o *projectController) CreateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /project/list/{id} [post]
 func (o *projectController) CreateAll(c *gin.Context) {
-	var body []models.ReqProject
+	var body []models.ProjectDto
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -413,7 +413,7 @@ func (o *projectController) ReadAll(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param name path string true "Project Name"
-// @Param model body models.ReqProject true "Project without File Data"
+// @Param model body models.ProjectDto true "Project without File Data"
 // @Success 200 {object} models.Success{result=[]models.Project}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -423,7 +423,7 @@ func (o *projectController) ReadAll(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /project/{name} [put]
 func (o *projectController) UpdateOne(c *gin.Context) {
-	var body models.ReqProject
+	var body models.ProjectDto
 
 	var name = c.Param("name")
 	if err := c.ShouldBind(&body); err != nil || name == "" || len(body.Files) != 0 {
@@ -475,7 +475,7 @@ func (o *projectController) UpdateOne(c *gin.Context) {
 // @Param id query int false "Type: '1'"
 // @Param name query string false "Type: 'CodeRain'"
 // @Param title query string false "Type: 'Code Rain'"
-// @Param model body models.ReqProject true "Project without File Data"
+// @Param model body models.ProjectDto true "Project without File Data"
 // @Success 200 {object} models.Success{result=[]models.File}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -484,7 +484,7 @@ func (o *projectController) UpdateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /project [put]
 func (o *projectController) UpdateAll(c *gin.Context) {
-	var body models.ReqProject
+	var body models.ProjectDto
 	if err := c.ShouldBind(&body); err != nil || len(body.Files) != 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return

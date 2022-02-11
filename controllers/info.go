@@ -48,7 +48,7 @@ func (*infoController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*infoController) parseBody(body *models.ReqInfo, model *models.Info) {
+func (*infoController) parseBody(body *models.InfoDto, model *models.Info) {
 	model.Countries = body.Countries
 
 	// FIXME: If need it
@@ -80,7 +80,7 @@ func (*infoController) parseBody(body *models.ReqInfo, model *models.Info) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param model body models.ReqInfo true "Info Data"
+// @Param model body models.InfoDto true "Info Data"
 // @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -90,7 +90,7 @@ func (*infoController) parseBody(body *models.ReqInfo, model *models.Info) {
 // @Router /info [post]
 func (o *infoController) Create(c *gin.Context) {
 	var model = make([]models.Info, 1)
-	var body models.ReqInfo
+	var body models.InfoDto
 	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params or id parm")
 		return
@@ -131,7 +131,7 @@ func (o *infoController) Create(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param date path string true "Created at instance"
-// @Param model body models.ReqInfo true "Info Data"
+// @Param model body models.InfoDto true "Info Data"
 // @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -141,7 +141,7 @@ func (o *infoController) Create(c *gin.Context) {
 // @Router /info/{date} [post]
 func (o *infoController) CreateOne(c *gin.Context) {
 	var date = c.Param("date")
-	var body models.ReqInfo
+	var body models.InfoDto
 	if err := c.ShouldBind(&body); err != nil || body.Countries == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body is not setted")
 		return
@@ -210,7 +210,7 @@ func (o *infoController) CreateOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param model body []models.ReqInfo true "List of Info Data"
+// @Param model body []models.InfoDto true "List of Info Data"
 // @Success 201 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -219,7 +219,7 @@ func (o *infoController) CreateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /info/list [post]
 func (o *infoController) CreateAll(c *gin.Context) {
-	var body []models.ReqInfo
+	var body []models.InfoDto
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -391,7 +391,7 @@ func (o *infoController) ReadAll(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Instance id"
-// @Param model body models.ReqInfo true "Info Data"
+// @Param model body models.InfoDto true "Info Data"
 // @Success 200 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -401,7 +401,7 @@ func (o *infoController) ReadAll(c *gin.Context) {
 // @Router /info/{id} [put]
 func (o *infoController) UpdateOne(c *gin.Context) {
 	var id int
-	var body models.ReqInfo
+	var body models.InfoDto
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -449,7 +449,7 @@ func (o *infoController) UpdateOne(c *gin.Context) {
 // @Param id query int false "Instance :id"
 // @Param created_at query string false "CreatedAt date"
 // @Param countries query string false "Countries: 'UK,US'"
-// @Param model body models.ReqInfo true "Info Data"
+// @Param model body models.InfoDto true "Info Data"
 // @Success 200 {object} models.Success{result=[]models.Info}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -458,7 +458,7 @@ func (o *infoController) UpdateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /info [put]
 func (o *infoController) UpdateAll(c *gin.Context) {
-	var body models.ReqInfo
+	var body models.InfoDto
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return

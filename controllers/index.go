@@ -97,15 +97,15 @@ func (*indexController) TraceIp(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
-// @Param model body models.Login true "Login info"
-// @Success 200 {object} models.Tokens
+// @Param model body models.LoginDto true "Login info"
+// @Success 200 {object} models.TokenEntity
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
 // @Router /login [post]
 func (*indexController) Login(c *gin.Context) {
-	var login models.Login
+	var login models.LoginDto
 	if err := c.ShouldBind(&login); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body")
 		return
@@ -140,7 +140,7 @@ func (*indexController) Login(c *gin.Context) {
 	ctx := context.Background()
 	db.Redis.Set(ctx, token.AccessUUID, config.ENV.ID, time.Duration((token.AccessExpire-now)*int64(time.Second)))
 	db.Redis.Set(ctx, token.RefreshUUID, config.ENV.ID, time.Duration((token.RefreshExpire-now)*int64(time.Second)))
-	helper.ResHandler(c, http.StatusOK, models.Tokens{
+	helper.ResHandler(c, http.StatusOK, models.TokenEntity{
 		Status:       "OK",
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
@@ -151,7 +151,7 @@ func (*indexController) Login(c *gin.Context) {
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
-// @Success 200 {object} models.Tokens
+// @Success 200 {object} models.TokenEntity
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
 // @failure 422 {object} models.Error
@@ -159,7 +159,7 @@ func (*indexController) Login(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /refresh [post]
 func (*indexController) Refresh(c *gin.Context) {
-	var tokens models.Tokens
+	var tokens models.TokenEntity
 	if err := c.ShouldBind(&tokens); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Refresh token not specified")
 		return
@@ -221,7 +221,7 @@ func (*indexController) Refresh(c *gin.Context) {
 	now := time.Now().Unix()
 	db.Redis.Set(ctx, t.AccessUUID, config.ENV.ID, time.Duration((t.AccessExpire-now)*int64(time.Second)))
 	db.Redis.Set(ctx, t.RefreshUUID, config.ENV.ID, time.Duration((t.RefreshExpire-now)*int64(time.Second)))
-	helper.ResHandler(c, http.StatusOK, models.Tokens{
+	helper.ResHandler(c, http.StatusOK, models.TokenEntity{
 		Status:       "OK",
 		AccessToken:  t.AccessToken,
 		RefreshToken: t.RefreshToken,

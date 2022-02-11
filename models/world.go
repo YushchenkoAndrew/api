@@ -43,7 +43,7 @@ func (c *World) Redis(db *gorm.DB, client *redis.Client) error {
 	return nil
 }
 
-type ReqWorld struct {
+type WorldDto struct {
 	// ID        uint32
 	// UpdatedAt time.Time
 	Country  string  `json:"country" xml:"country"`

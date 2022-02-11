@@ -47,7 +47,7 @@ func (*worldController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*worldController) parseBody(body *models.ReqWorld, model *models.World) {
+func (*worldController) parseBody(body *models.WorldDto, model *models.World) {
 	if body.Country != "" {
 		model.Country = body.Country
 	}
@@ -63,7 +63,7 @@ func (*worldController) parseBody(body *models.ReqWorld, model *models.World) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param model body models.ReqWorld true "World Data"
+// @Param model body models.WorldDto true "World Data"
 // @Success 201 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -73,7 +73,7 @@ func (*worldController) parseBody(body *models.ReqWorld, model *models.World) {
 // @Router /world [post]
 func (o *worldController) CreateOne(c *gin.Context) {
 	var model = make([]models.World, 1)
-	var body models.ReqWorld
+	var body models.WorldDto
 	if err := c.ShouldBind(&body); err != nil || body.Country == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params or id parm")
 		return
@@ -123,7 +123,7 @@ func (o *worldController) CreateOne(c *gin.Context) {
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param model body []models.ReqWorld true "List of World Data"
+// @Param model body []models.WorldDto true "List of World Data"
 // @Success 201 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -132,7 +132,7 @@ func (o *worldController) CreateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /world/list [post]
 func (o *worldController) CreateAll(c *gin.Context) {
-	var body []models.ReqWorld
+	var body []models.WorldDto
 	if err := c.ShouldBind(&body); err != nil || len(body) == 0 {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -342,7 +342,7 @@ func (o *worldController) ReadAll(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Instance id"
-// @Param model body models.ReqWorld true "World Data"
+// @Param model body models.WorldDto true "World Data"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -352,7 +352,7 @@ func (o *worldController) ReadAll(c *gin.Context) {
 // @Router /world/{id} [put]
 func (o *worldController) UpdateOne(c *gin.Context) {
 	var id int
-	var body models.ReqWorld
+	var body models.WorldDto
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -399,7 +399,7 @@ func (o *worldController) UpdateOne(c *gin.Context) {
 // @Param id query int false "Instance :id"
 // @Param updated_at query string false "UpdatedAt date"
 // @Param country query string false "Country: 'UK'"
-// @Param model body models.ReqWorld true "World Data"
+// @Param model body models.WorldDto true "World Data"
 // @Success 200 {object} models.Success{result=[]models.World}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -408,7 +408,7 @@ func (o *worldController) UpdateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /world [put]
 func (o *worldController) UpdateAll(c *gin.Context) {
-	var body models.ReqWorld
+	var body models.WorldDto
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return

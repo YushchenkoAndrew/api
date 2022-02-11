@@ -49,7 +49,7 @@ func (c *Project) Redis(db *gorm.DB, client *redis.Client) error {
 	return nil
 }
 
-type ReqProject struct {
+type ProjectDto struct {
 	// ID        uint32    `json:"id" xml:"id"`
 	Name  string `json:"name" xml:"name"`
 	Title string `json:"title" xml:"title"`

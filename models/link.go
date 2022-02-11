@@ -45,7 +45,7 @@ func (c *Link) Redis(db *gorm.DB, client *redis.Client) error {
 	return nil
 }
 
-type ReqLink struct {
+type LinkDto struct {
 	// ID        uint32    `json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Link string `json:"link" xml:"link"`

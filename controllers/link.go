@@ -44,12 +44,12 @@ func (*linkController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*linkController) parseBody(body *models.ReqLink, model *models.Link) {
+func (*linkController) parseBody(body *models.LinkDto, model *models.Link) {
 	model.Name = body.Name
 	model.Link = body.Link
 }
 
-func (*linkController) isExist(id int, body *models.ReqLink) bool {
+func (*linkController) isExist(id int, body *models.LinkDto) bool {
 	var model []models.Link
 	res := db.DB.Where("project_id = ? AND name = ? AND Link = ?", id, body.Name, body.Link).Find(&model)
 	return !(res.RowsAffected == 0)
@@ -62,7 +62,7 @@ func (*linkController) isExist(id int, body *models.ReqLink) bool {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Project primaray id"
-// @Param model body models.ReqLink true "Link info"
+// @Param model body models.LinkDto true "Link info"
 // @Success 201 {object} models.Success{result=[]models.Link}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -77,7 +77,7 @@ func (o *linkController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	var body models.ReqLink
+	var body models.LinkDto
 	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Link == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
 		return
@@ -142,7 +142,7 @@ func (o *linkController) CreateOne(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Project id"
-// @Param model body []models.ReqLink true "List of Links info"
+// @Param model body []models.LinkDto true "List of Links info"
 // @Success 201 {object} models.Success{result=[]models.Link}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -153,7 +153,7 @@ func (o *linkController) CreateOne(c *gin.Context) {
 func (o *linkController) CreateAll(c *gin.Context) {
 	var err error
 	var id int
-	var body []models.ReqLink
+	var body []models.LinkDto
 
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect project id param")
@@ -348,7 +348,7 @@ func (o *linkController) ReadAll(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Instance id"
-// @Param model body models.ReqLink true "Link Data"
+// @Param model body models.LinkDto true "Link Data"
 // @Success 200 {object} models.Success{result=[]models.Link}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -358,7 +358,7 @@ func (o *linkController) ReadAll(c *gin.Context) {
 // @Router /link/{id} [put]
 func (o *linkController) UpdateOne(c *gin.Context) {
 	var id int
-	var body models.ReqLink
+	var body models.LinkDto
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -405,7 +405,7 @@ func (o *linkController) UpdateOne(c *gin.Context) {
 // @Param id query int false "Type: '1'"
 // @Param name query string false "Type: 'Name: 'main'"
 // @Param project_id query string false "ProjectID: '1'"
-// @Param model body models.ReqLink true "Link Data"
+// @Param model body models.LinkDto true "Link Data"
 // @Success 200 {object} models.Success{result=[]models.Link}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -414,7 +414,7 @@ func (o *linkController) UpdateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /link [put]
 func (o *linkController) UpdateAll(c *gin.Context) {
-	var body models.ReqLink
+	var body models.LinkDto
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return

@@ -55,14 +55,14 @@ func (*fileController) filterQuery(c *gin.Context) (*gorm.DB, string) {
 	return result, sKeys
 }
 
-func (*fileController) parseBody(body *models.ReqFile, model *models.File) {
+func (*fileController) parseBody(body *models.FileDto, model *models.File) {
 	model.Name = body.Name
 	model.Path = body.Path
 	model.Role = body.Role
 	model.Type = body.Type
 }
 
-func (*fileController) isExist(id int, body *models.ReqFile) bool {
+func (*fileController) isExist(id int, body *models.FileDto) bool {
 	var model []models.File
 	res := db.DB.Where("project_id = ? AND name = ? AND role = ? AND type = ?", id, body.Name, body.Role, body.Type).Find(&model)
 	return !(res.RowsAffected == 0)
@@ -75,7 +75,7 @@ func (*fileController) isExist(id int, body *models.ReqFile) bool {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Project primaray id"
-// @Param model body models.ReqFile true "File Data"
+// @Param model body models.FileDto true "File Data"
 // @Success 201 {object} models.Success{result=[]models.File}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -90,7 +90,7 @@ func (o *fileController) CreateOne(c *gin.Context) {
 		return
 	}
 
-	var body models.ReqFile
+	var body models.FileDto
 	if err := c.ShouldBind(&body); err != nil || body.Name == "" || body.Type == "" {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body format")
 		return
@@ -155,7 +155,7 @@ func (o *fileController) CreateOne(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Project id"
-// @Param model body []models.ReqFile true "List of File Data"
+// @Param model body []models.FileDto true "List of File Data"
 // @Success 201 {object} models.Success{result=[]models.File}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -166,7 +166,7 @@ func (o *fileController) CreateOne(c *gin.Context) {
 func (o *fileController) CreateAll(c *gin.Context) {
 	var err error
 	var id int
-	var body []models.ReqFile
+	var body []models.FileDto
 
 	if !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect project id param")
@@ -363,7 +363,7 @@ func (o *fileController) ReadAll(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Instance id"
-// @Param model body models.ReqFile true "File Data"
+// @Param model body models.FileDto true "File Data"
 // @Success 200 {object} models.Success{result=[]models.File}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -373,7 +373,7 @@ func (o *fileController) ReadAll(c *gin.Context) {
 // @Router /file/{id} [put]
 func (o *fileController) UpdateOne(c *gin.Context) {
 	var id int
-	var body models.ReqFile
+	var body models.FileDto
 	if err := c.ShouldBind(&body); err != nil || !helper.GetID(c, &id) {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return
@@ -421,7 +421,7 @@ func (o *fileController) UpdateOne(c *gin.Context) {
 // @Param type query string false "Type: 'js,html,img'"
 // @Param role query string false "Role: 'src,assets,styles'"
 // @Param project_id query string false "ProjectID: '1'"
-// @Param model body models.ReqFile true "File Data"
+// @Param model body models.FileDto true "File Data"
 // @Success 200 {object} models.Success{result=[]models.File}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
@@ -430,7 +430,7 @@ func (o *fileController) UpdateOne(c *gin.Context) {
 // @failure 500 {object} models.Error
 // @Router /file [put]
 func (o *fileController) UpdateAll(c *gin.Context) {
-	var body models.ReqFile
+	var body models.FileDto
 	if err := c.ShouldBind(&body); err != nil {
 		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect body params")
 		return

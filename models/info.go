@@ -46,7 +46,7 @@ func (c *Info) Redis(db *gorm.DB, client *redis.Client) error {
 	return nil
 }
 
-type ReqInfo struct {
+type InfoDto struct {
 	// ID        uint32    `json:"id" xml:"id"`
 	// CreatedAt *time.Time `json:"CreatedAt" xml:"CreatedAt"`
 	Countries string  `json:"countries" xml:"contries"`

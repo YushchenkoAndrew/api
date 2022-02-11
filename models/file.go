@@ -47,7 +47,7 @@ func (c *File) Redis(db *gorm.DB, client *redis.Client) error {
 	return nil
 }
 
-type ReqFile struct {
+type FileDto struct {
 	// ID        uint32    `json:"id" xml:"id"`
 	Name string `json:"name" xml:"name"`
 	Path string `json:"path" xml:"path"`

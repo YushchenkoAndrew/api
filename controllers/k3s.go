@@ -83,7 +83,7 @@ func (*k3sController) Subscribe(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param id path int true "Project primaray id"
-// @Param model body models.ReqLink true "Link info"
+// @Param model body models.LinkDto true "Link info"
 // @Success 201 {object} models.Success{result=[]models.Link}
 // @failure 400 {object} models.Error
 // @failure 401 {object} models.Error
