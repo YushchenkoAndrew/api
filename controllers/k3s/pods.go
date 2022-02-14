@@ -8,6 +8,7 @@ import (
 	"api/models"
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	v1 "k8s.io/api/core/v1"
@@ -35,7 +36,7 @@ func NewPodsController() k3s.Pods {
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/pod/{namespace}/{name} [post]
+// @Router /k3s/pods/{namespace}/{name} [post]
 func (*podsController) Exec(c *gin.Context) {
 	var name string
 	var namespace string
@@ -107,7 +108,7 @@ func (*podsController) Exec(c *gin.Context) {
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/pod/{namespace}/{name} [get]
+// @Router /k3s/pods/{namespace}/{name} [get]
 func (*podsController) ReadOne(c *gin.Context) {
 	var name string
 	var namespace string
@@ -144,11 +145,12 @@ func (*podsController) ReadOne(c *gin.Context) {
 // @Produce application/xml
 // @Security BearerAuth
 // @Param namespace path string false "Namespace name"
+// @Param prefix query string false "Get pods which will start with the prefix"
 // @Success 200 {object} models.Success{result=[]v1.Pod}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/pod/{namespace} [get]
+// @Router /k3s/pods/{namespace} [get]
 func (*podsController) ReadAll(c *gin.Context) {
 	ctx := context.Background()
 	result, err := config.K3s.CoreV1().Pods(c.Param("namespace")).List(ctx, metaV1.ListOptions{})
@@ -158,9 +160,31 @@ func (*podsController) ReadAll(c *gin.Context) {
 		return
 	}
 
+	var filtered = []v1.Pod{}
+	if prefix := c.DefaultQuery("prefix", ""); prefix != "" {
+		// TODO: ....
+		// keys = append(keys, fmt.Sprintf("PREFIX=%s", prefix))
+		// 	hasher := md5.New()
+		// 	hasher.Write([]byte(strings.Join(keys, ":")))
+		// 	return client, hex.EncodeToString(hasher.Sum(nil))
+
+		for _, pod := range result.Items {
+			if strings.HasPrefix(pod.Name, prefix) {
+				filtered = append(filtered, pod)
+			}
+		}
+	} else {
+		filtered = result.Items
+	}
+
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: result,
-		Items:  int64(len(result.Items)),
+		Result: v1.PodList{
+			ListMeta: metaV1.ListMeta{
+				ResourceVersion: result.ResourceVersion,
+			},
+			Items: filtered,
+		},
+		Items: int64(len(result.Items)),
 	})
 }

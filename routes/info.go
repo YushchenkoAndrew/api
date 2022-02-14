@@ -16,13 +16,14 @@ type infoRouter struct {
 }
 
 func NewInfoRouter(rg *gin.RouterGroup, handlers []func(*gin.RouterGroup) interfaces.Router) interfaces.Router {
+	route := rg.Group("/info")
 	var subRoutes []interfaces.Router
 	for _, handler := range handlers {
-		subRoutes = append(subRoutes, handler(rg))
+		subRoutes = append(subRoutes, handler(route))
 	}
 
 	return &infoRouter{
-		route:     rg.Group(("/info")),
+		route:     route,
 		auth:      rg.Group("/info", middleware.Auth()),
 		info:      c.NewInfoController(),
 		subRoutes: subRoutes,
