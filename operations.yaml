@@ -1,10 +1,18 @@
 cfg:
   - name: metrics
     method: post
-    path: /k3s/pods/metrics/{namespace}/{name}/{id}
+    path: /k3s/pods/metrics/{id}/{namespace}/{name}
     required:
       - id
       - name
+      - namespace
+
+  - name: metrics-all
+    method: post
+    path: /k3s/pods/metrics/{id}/{namespace}?prefix={prefix}
+    required:
+      - id
+      - prefix
       - namespace
 
   - name: ping

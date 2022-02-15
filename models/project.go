@@ -44,7 +44,7 @@ func (c *Project) Redis(db *gorm.DB, client *redis.Client) error {
 	var value int64
 	db.Model(c).Count(&value)
 
-	if err := client.Set(context.Background(), "nProject", value, 0).Err(); err != nil {
+	if err := client.Set(context.Background(), "nPROJECT", value, 0).Err(); err != nil {
 		return fmt.Errorf("[Redis] Error happed while setting value to Cache: %v", err)
 	}
 

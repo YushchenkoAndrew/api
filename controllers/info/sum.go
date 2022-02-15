@@ -58,7 +58,7 @@ func (o *sumController) Read(c *gin.Context) {
 		}
 	}
 
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)

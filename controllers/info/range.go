@@ -70,7 +70,7 @@ func (*rangeController) Read(c *gin.Context) {
 	}
 
 	result = result.Find(&model)
-	items, err := db.Redis.Get(ctx, "nInfo").Int64()
+	items, err := db.Redis.Get(ctx, "nINFO").Int64()
 	if err != nil || result == nil {
 		items = -1
 		go (&models.Info{}).Redis(db.DB, db.Redis)

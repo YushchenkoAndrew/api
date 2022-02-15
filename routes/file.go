@@ -16,7 +16,7 @@ type fileRouter struct {
 
 func NewFileRouter(rg *gin.RouterGroup) interfaces.Router {
 	return &fileRouter{
-		route: rg.Group(("/file")),
+		route: rg.Group("/file"),
 		auth:  rg.Group("/file", middleware.Auth()),
 		file:  c.NewFileController(),
 	}
