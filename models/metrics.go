@@ -15,9 +15,9 @@ type Metrics struct {
 	Namespace     string    `gorm:"not null" json:"namespace" xml:"namespace" example:"void-deployment-8985bd57d-k9n5g"`
 	ContainerName string    `gorm:"not null" json:"container_name" xml:"container_name" example:"void"`
 	CPU           int64     `gorm:"not null" json:"cpu" xml:"cpu" example:"690791"`
-	CpuScale      uint8     `gorm:"not null" json:"cpu_scale" xml:"cpu_scale" example:"3"`
+	CpuScale      int8      `gorm:"not null" json:"cpu_scale" xml:"cpu_scale" example:"3"`
 	Memory        int64     `gorm:"not null" json:"memory" xml:"memory" example:"690791"`
-	MemoryScale   uint8     `gorm:"not null" json:"memory_scale" xml:"memory_scale" example:"6"`
+	MemoryScale   int8      `gorm:"not null" json:"memory_scale" xml:"memory_scale" example:"6"`
 	ProjectID     uint32    `gorm:"foreignKey:ProjectID;not null" json:"project_id" xml:"project_id" example:"1"`
 }
 

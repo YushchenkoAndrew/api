@@ -8,6 +8,8 @@ import (
 	"api/logs"
 	"api/models"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 
@@ -28,12 +30,12 @@ func getScaledValue(q *resource.Quantity, scale int) (int64, int) {
 	}
 
 	var value int64
-	if value = q.Value(); value >= 100 {
+	if value = q.Value(); value%10 == 0 {
 		return value, 0
 	}
 
-	for i := 3; i < 12; i += 3 {
-		if value = q.ScaledValue(resource.Scale(-int32(i))); value >= 100 {
+	for i := 1; i < 12; i++ {
+		if value = q.ScaledValue(resource.Scale(-int32(i))); value%10 == 0 {
 			return value, i
 		}
 	}
@@ -143,8 +145,8 @@ func (*metricsController) CreateAll(c *gin.Context) {
 				cpuScale, _ := db.Redis.Get(ctx, fmt.Sprintf("%s:CPU:SCALE:%d", key, i)).Int()
 				memScale, _ := db.Redis.Get(ctx, fmt.Sprintf("%s:MEMORY:SCALE:%d", key, i)).Int()
 
-				model[i].CpuScale = uint8(cpuScale)
-				model[i].MemoryScale = uint8(memScale)
+				model[i].CpuScale = int8(cpuScale)
+				model[i].MemoryScale = int8(memScale)
 
 				db.Redis.Del(ctx, fmt.Sprintf("%s:CPU:%d", key, i))
 				db.Redis.Del(ctx, fmt.Sprintf("%s:MEMORY:%d", key, i))
@@ -264,8 +266,8 @@ func (*metricsController) CreateOne(c *gin.Context) {
 			cpuScale, _ := db.Redis.Get(ctx, fmt.Sprintf("%s:CPU:SCALE:%d", key, i)).Int()
 			memScale, _ := db.Redis.Get(ctx, fmt.Sprintf("%s:MEMORY:SCALE:%d", key, i)).Int()
 
-			model[i].CpuScale = uint8(cpuScale)
-			model[i].MemoryScale = uint8(memScale)
+			model[i].CpuScale = int8(cpuScale)
+			model[i].MemoryScale = int8(memScale)
 
 			db.Redis.Del(ctx, fmt.Sprintf("%s:CPU:%d", key, i))
 			db.Redis.Del(ctx, fmt.Sprintf("%s:MEMORY:%d", key, i))
@@ -283,47 +285,51 @@ func (*metricsController) CreateOne(c *gin.Context) {
 }
 
 // @Tags Metrics
-// @Summary Get Pod Metrics
+// @Summary Get Pod Metrics by Project ID
 // @Accept json
 // @Produce application/json
 // @Produce application/xml
 // @Security BearerAuth
-// @Param name path string true "Specified name of Service"
-// @Param namespace query string false "Namespace name"
-// @Success 200 {object} models.Success{result=[]v1.PodMetrics}
+// @Param id path string true "Project id"
+// @Param page query int false "Page: '0'"
+// @Param limit query int false "Limit: '1'"
+// @Success 200 {object} models.Success{result=[]models.Metrics}
 // @failure 422 {object} models.Error
 // @failure 429 {object} models.Error
 // @failure 500 {object} models.Error
-// @Router /k3s/pod/metrics/{namespace}/{name} [get]
+// @Router /k3s/pod/metrics/{id} [get]
 func (*metricsController) ReadOne(c *gin.Context) {
+	var id int
+	var model []models.Metrics
 
-	// TODO: Think about this should I have this impl of Metrics or
-	// simply request data from Database for spec pod
-
-	var name string
-	var namespace string
-
-	if name = c.Param("name"); name == "" {
-		helper.ErrHandler(c, http.StatusBadRequest, "Name shouldn't be empty")
+	if !helper.GetID(c, &id) {
+		helper.ErrHandler(c, http.StatusBadRequest, "Incorrect id value")
 		return
 	}
+	page, limit := helper.Pagination(c)
 
-	if namespace = c.Param("namespace"); name == "" {
-		helper.ErrHandler(c, http.StatusBadRequest, "Namespace shouldn't be empty")
-		return
-	}
-
-	ctx := context.Background()
-	result, err := config.Metrics.MetricsV1beta1().PodMetricses(namespace).Get(ctx, name, metaV1.GetOptions{})
-	if err != nil {
+	hasher := md5.New()
+	hasher.Write([]byte(fmt.Sprintf("PROJECT_ID=%d", id)))
+	if err := helper.PrecacheResult(fmt.Sprintf("METRICS:%s", hex.EncodeToString(hasher.Sum(nil))), db.DB.Where("project_id = ?", id).Order("created_at DESC").Offset(page*config.ENV.Items).Limit(limit), &model); err != nil {
 		helper.ErrHandler(c, http.StatusInternalServerError, err.Error())
+		go logs.DefaultLog("/controllers/k3s/pods/metrics.go", err.Error())
 		return
 	}
+
+	// TODO: Maybe one day ....
+	// var items int64
+	// var err error
+	// if items, err = db.Redis.Get(context.Background(), "nLINK").Int64(); err != nil {
+	// 	items = -1
+	// 	go (&models.Link{}).Redis(db.DB, db.Redis)
+	// 	go logs.DefaultLog("/controllers/k3s/pods/metrics.go", err.Error())
+	// }
 
 	helper.ResHandler(c, http.StatusOK, &models.Success{
 		Status: "OK",
-		Result: []interface{}{result},
-		Items:  1,
+		Result: model,
+		Items:  int64(len(model)),
+		// TotalItems: items,
 	})
 }
 
